@@ -189,13 +189,19 @@ func loadFrom4500(inputFile string) (map[string]*Model, error) {
 
 	titleRow := rows[0]
 	titleMap := detainTitles(AssetTitles, titleRow)
+	log.Printf("len:%v, %v", len(titleRow), titleRow)
 	log.Printf("%v", titleMap)
 
 	var modelMap = make(map[string]*Model)
 	for _, row := range rows[1:] {
 		modelName := row[titleMap[MODEL_NAME]]
 		manu := row[titleMap[Manufacturer]]
-		modelNumber := row[titleMap[MODEL_NUMBER]]
+
+		var modelNumber string
+		if len(row) > titleMap[MODEL_NUMBER] {
+			modelNumber = row[titleMap[MODEL_NUMBER]]
+		}
+
 		catergory := row[titleMap[CATEGORY]]
 
 		//log.Printf("name:%v, manu:%v, %v, %v", row[titleMap[MODEL_NAME]], manu, modelNumber, catergory)
@@ -271,26 +277,30 @@ func main() {
 		maps, err := loadFrom4500(*levy4500)
 		if err != nil {
 			log.Printf("fail to load levy excel: %v", err)
+			return
 		}
 
-		if benchModelMap != nil && err != nil {
+		if benchModelMap != nil {
 			nameList := make([]string, len(benchModelMap), len(benchModelMap))
 			for name, _ := range benchModelMap {
 				nameList = append(nameList, name)
 			}
+
 			sort.Strings(nameList)
 			for _, item := range maps {
 				for _, asset := range item.Assets {
+					//log.Printf("  %v", asset.FullName)
 					found := false
-					for i := len(nameList); i > 0; i-- {
+					for i := len(nameList)-1; i >= 0; i-- {
 						if strings.Contains(strings.ToLower(asset.FullName), strings.ToLower(nameList[i])) {
 							found = true
+							log.Printf("%v --> %v", nameList[i], asset.FullName)
 							break
 						}
 					}
 
-					if found {
-						modelName := item.Models[0].ModelNumber
+					if !found {
+						modelName := item.Models[0].ModelName
 						log.Printf("X %v: %v: %v", asset.FullName, modelName, benchModelMap[modelName])
 					}
 				}
