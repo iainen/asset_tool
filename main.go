@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"strings"
 )
 
 var benchmark = flag.String("benchmark", "", "benchmark json file")
@@ -16,8 +15,7 @@ func main() {
 	flag.Parse()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
-	var benchNameMap map[string][]Data
-	var err error
+
 
 	if *epo != "" {
 		_, _ = loadEpoExcel2AssetMap(*epo)
@@ -26,6 +24,18 @@ func main() {
 	if *wetest != "" {
 		_, _ = loadWetestGoodExcel2Map(*wetest)
 	}
+
+	// step1:
+	//	tag->model->fullname
+	//	model->fullname
+	//	fullname->model
+
+	// step2:
+	//  model->aliasname
+
+	/*
+	var benchNameMap map[string][]Data
+	var err error
 
 	if *benchmark != "" {
 		benchNameMap, err = loadBenchmark2NameMap(*benchmark)
@@ -79,4 +89,5 @@ func main() {
 		benchModelMap, _ := loadBenchmark2ModelMap(*benchmark)
 		exportExcel(*out, benchModelMap)
 	}
+	 */
 }
