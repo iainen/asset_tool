@@ -18,7 +18,7 @@ var EpoTitles = []string{
 type EpoAsset struct {
 	AssetTag string
 	Manu     string
-	Name     string
+	Name     string //very long name
 }
 
 // 功能：将epm导出的资产编号excel表转换为资产字典表
