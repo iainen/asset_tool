@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"log"
 )
@@ -75,5 +76,38 @@ func showEpoNameMap(nameMap map[string]string) {
 	for name, manu := range nameMap {
 		log.Printf("%v: [name]: %v, [manu]:%v", index, name, manu)
 		index++
+	}
+}
+
+func exportEpoNameMap(outfile string, nameMap map[string]string) {
+	f := excelize.NewFile()
+	// Create a new sheet.
+	index := f.NewSheet("Sheet")
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+
+	titles := []string{
+		EpoManu,
+		EpoName,
+		WetestModel,
+		WetestProudct,
+		WetestBrand,
+		WetestManu,
+	}
+
+	for i, v := range titles {
+		f.SetCellValue("Sheet", fmt.Sprintf("%c%d", int('A')+i, 1), v)
+	}
+
+	line := 2
+	for name, manu := range nameMap {
+		f.SetCellValue("Sheet", fmt.Sprintf("A%d", line), name)
+		f.SetCellValue("Sheet", fmt.Sprintf("B%d", line), manu)
+		line++
+	}
+
+	// Save spreadsheet by the given path.
+	if err := f.SaveAs(outfile); err != nil {
+		fmt.Println(err)
 	}
 }

@@ -91,64 +91,8 @@ func main() {
 	nameMap := epoAsset2NameMap(wetestBadAsset)
 	showEpoNameMap(nameMap)
 
+	exportEpoNameMap("209.xlsx", nameMap)
+
 	// step3:
 	//  model->aliasname
-
-	/*
-	var benchNameMap map[string][]Data
-	var err error
-
-	if *benchmark != "" {
-		benchNameMap, err = loadBenchmark2NameMap(*benchmark)
-		if err != nil {
-			return
-		}
-	}
-
-	if *levy4500 != "" {
-		maps, err := loadFrom4500(*levy4500)
-		if err != nil {
-			log.Printf("fail to load levy excel: %v", err)
-			return
-		}
-
-		if benchNameMap != nil {
-			nameList := make([]string, 0, len(benchNameMap))
-			for name, _ := range benchNameMap {
-				if len(name) >= 2 { // some bad typename
-					nameList = append(nameList, name)
-				}
-			}
-
-			//sort.Strings(nameList)
-			//for i, v := range nameList {
-			//	log.Printf("%v: %v", i, v)
-			//}
-			//return
-
-			for _, item := range maps {
-				for _, asset := range item.Assets {
-					//log.Printf("  %v", asset.FullName)
-					found := false
-					for i := len(nameList)-1; i >= 0; i-- {
-						if strings.Contains(strings.ToLower(asset.FullName), strings.ToLower(nameList[i])) {
-							found = true
-							//log.Printf("[Y] %v --> %v", nameList[i], asset.FullName)
-							break
-						}
-					}
-
-					if !found {
-						log.Printf("[X] %v", asset.FullName)
-					}
-				}
-			}
-		}
-	}
-
-	if *out != "" {
-		benchModelMap, _ := loadBenchmark2ModelMap(*benchmark)
-		exportExcel(*out, benchModelMap)
-	}
-	 */
 }
