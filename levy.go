@@ -27,13 +27,16 @@ type WetestAsset struct {
 	Product  string
 	Brand    string
 	Manu     string
+
 	Serial   string
 	IMEI     string
 	Pc       string
+
+	FullName string
 }
 
 // 资产编号-> 手机信息表
-func loadWetestGoodExcel2Map(inputFile string) (map[string]WetestAsset, error) {
+func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, error) {
 	f, err := excelize.OpenFile(inputFile)
 	if err != nil {
 		log.Fatalf("fail to open file: %v", err)
@@ -47,7 +50,7 @@ func loadWetestGoodExcel2Map(inputFile string) (map[string]WetestAsset, error) {
 	log.Printf("len:%v, %v", len(titleRow), titleRow)
 	log.Printf("%v", titleMap)
 
-	var outMap = make(map[string]WetestAsset)
+	var outMap = make(map[string]*WetestAsset)
 	for _, row := range rows[1:] {
 		tag := row[titleMap[WetestAssetTag]]
 		model := row[titleMap[WetestModel]]
@@ -58,12 +61,12 @@ func loadWetestGoodExcel2Map(inputFile string) (map[string]WetestAsset, error) {
 		imei := row[titleMap[WetestIMEI]]
 		pc := row[titleMap[WetestPc]]
 
-		log.Printf("tag:[%v], model:[%v], prod:[%v], manu:[%v], serial:[%v], imei:[%v], pc:[%v]",
-			tag, model, product, manu, serial, imei, pc)
+		//log.Printf("tag:[%v], model:[%v], prod:[%v], manu:[%v], serial:[%v], imei:[%v], pc:[%v]",
+		//	tag, model, product, manu, serial, imei, pc)
 
 		item, ok := outMap[tag]
 		if !ok {
-			outMap[tag] = WetestAsset{
+			outMap[tag] = &WetestAsset{
 				AssetTag: tag,
 				Model: model,
 				Product: product,

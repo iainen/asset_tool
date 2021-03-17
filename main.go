@@ -6,31 +6,82 @@ import (
 )
 
 var benchmark = flag.String("benchmark", "", "benchmark json file")
-var levy4500 = flag.String("levy4500", "", "levy 4500 xlsx file")
 var out = flag.String("output", "", "export to a excel file")
 var epo = flag.String("epo", "", "加载解析epo导出的excel表")
 var wetest = flag.String("wetest", "", "加载解析levy导出的数据库表")
+
+// tag->fullname
+var epoAssetsMap map[string]EpoAsset
+
+// tag->model, tag->model->fullname
+var wetestGoodAsset map[string]*WetestAsset
+
+// tag->fullname
+var wetestBadAsset = make(map[string]*WetestAsset, 0)
+
+// fullname->model
+var wetestGoodFullname2Model map[string]string
+
+func showWetestAsset(assets map[string]*WetestAsset) {
+	index := 1
+	for tag, item := range assets {
+		log.Printf("%v: [tag]: %v, [name]:%v", index, tag, item.FullName)
+		index++
+	}
+}
 
 func main() {
 	flag.Parse()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
-
-
+	// tag->fullname
 	if *epo != "" {
-		_, _ = loadEpoExcel2AssetMap(*epo)
+		epoAssetsMap, _ = loadEpoExcel2AssetMap(*epo)
 	}
 
+	// tag->model
 	if *wetest != "" {
-		_, _ = loadWetestGoodExcel2Map(*wetest)
+		wetestGoodAsset, _ = loadWetestGoodExcel2Map(*wetest)
 	}
 
-	// step1:
-	//	tag->model->fullname
-	//	model->fullname
-	//	fullname->model
+	// step1: 连接两张表
+	//	wetestGoodAsset: tag->model->fullname
+	//  wetestBadAsset:  tag->fullname
+	for tag, item := range epoAssetsMap {
+		if wetestItem, ok := wetestGoodAsset[tag]; ok {
+			wetestItem.FullName = item.Name
+		} else { // not found
+			wetestBadAsset[tag] = & WetestAsset{
+				AssetTag: tag,
+				FullName: item.Name,
+			}
+		}
+	}
 
-	// step2:
+	// step2: 处理epo中找不到的数目
+	// wetestGoodFullname2Model: fullname->model
+	wetestGoodFullname2Model = make(map[string]string)
+	for _, item := range wetestGoodAsset {
+		wetestGoodFullname2Model[item.FullName] = item.Model
+	}
+
+	for tag, item := range wetestBadAsset {
+		if model, ok := wetestGoodFullname2Model[item.FullName]; ok {
+			wetestGoodAsset[tag] = item
+			item.Model = model
+
+			// TODO: 需要一张model->detail表
+			item.Product = ""
+			item.Brand = ""
+			item.Manu = ""
+
+			delete(wetestBadAsset, tag)
+		}
+	}
+
+	showWetestAsset(wetestBadAsset) //312个
+
+	// step3:
 	//  model->aliasname
 
 	/*
