@@ -34,8 +34,6 @@ func loadEpoExcel2AssetMap(inputFile string) (map[string]EpoAsset, error) {
 
 	titleRow := rows[0]
 	titleMap := detainTitles(EpoTitles, titleRow)
-	log.Printf("len:%v, %v", len(titleRow), titleRow)
-	log.Printf("%v", titleMap)
 
 	var epoMap = make(map[string]EpoAsset)
 	for _, row := range rows[1:] {
@@ -87,12 +85,9 @@ func exportEpoNameMap(outfile string, nameMap map[string]string) {
 	f.SetActiveSheet(index)
 
 	titles := []string{
-		EpoManu,
 		EpoName,
+		EpoManu,
 		WetestModel,
-		WetestProudct,
-		WetestBrand,
-		WetestManu,
 	}
 
 	for i, v := range titles {
@@ -110,4 +105,38 @@ func exportEpoNameMap(outfile string, nameMap map[string]string) {
 	if err := f.SaveAs(outfile); err != nil {
 		fmt.Println(err)
 	}
+}
+
+// fullname->model
+func loadEpoNameModelExcel(inputFile string) (map[string]string, error) {
+	var epoNameTitles = []string{
+		EpoName, EpoManu, WetestModel,
+	}
+
+	f, err := excelize.OpenFile(inputFile)
+	if err != nil {
+		log.Fatalf("fail to open file: %v", err)
+	}
+
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+
+	titleRow := rows[0]
+	titleMap := detainTitles(epoNameTitles, titleRow)
+	//log.Printf("len:%v, %v", len(titleRow), titleRow)
+	//log.Printf("%v", titleMap)
+
+	var nameModelMap = make(map[string]string)
+	for _, row := range rows[1:] {
+		name := row[titleMap[EpoName]]
+		model := row[titleMap[WetestModel]]
+		// log.Printf("%v-->%v", name, model)
+		if _, ok := nameModelMap[name]; !ok {
+			nameModelMap[name] = model
+		} else {
+			log.Fatalf("error: duplicated asset name:%v", name)
+		}
+	}
+
+	return nameModelMap, nil
 }

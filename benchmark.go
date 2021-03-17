@@ -71,30 +71,3 @@ func loadBenchmark2ModelMap(inputfile string) (map[string]Data, error) {
 
 	return benchMap, nil
 }
-
-func loadBenchmark2NameMap(inputfile string) (map[string][]Data, error) {
-	jsonBytes, err := os.ReadFile(inputfile)
-	if err != nil {
-		log.Printf("fail to open logfile: %v", err)
-		return nil, err
-	}
-
-	var mobileBenchmark MobileDeviceBenchmark
-	err = json.Unmarshal(jsonBytes, &mobileBenchmark)
-	//if err != nil {
-	//	log.Printf("fail to parse json: %v", err)
-	//	return nil, err
-	//}
-
-	benchMap := make(map[string][]Data)
-	for _, item := range mobileBenchmark.Data {
-		if datas, ok := benchMap[item.Name]; !ok {
-			datas = make([]Data, 0)
-			benchMap[item.Name] = append(datas, item)
-		} else {
-			benchMap[item.Name] = append(datas, item)
-		}
-	}
-
-	return benchMap, nil
-}

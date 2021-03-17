@@ -2,13 +2,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 )
 
 var benchmark = flag.String("benchmark", "", "benchmark json file")
-var out = flag.String("output", "", "export to a excel file")
 var epo = flag.String("epo", "", "加载解析epo导出的excel表")
-var wetest = flag.String("wetest", "", "加载解析levy导出的数据库表")
+var wetest = flag.String("wetest", "", "加载解析levy导出的数据库excel表")
+var nameModel = flag.String("nameModel", "", "加载线下名称-机型excel表")
+var out = flag.String("output", "", "export to a excel file")
 
 // tag->fullname
 var epoAssetsMap map[string]EpoAsset
@@ -16,7 +18,7 @@ var epoAssetsMap map[string]EpoAsset
 // tag->model, tag->model, fullname
 var wetestGoodAsset map[string]*WetestAsset
 
-// model, fullname
+// model->detail
 var wetestModelMap map[string]*ModelDetail
 
 // tag->fullname
@@ -25,13 +27,11 @@ var wetestBadAsset = make(map[string]*WetestAsset, 0)
 // fullname->model
 var wetestGoodFullname2Model map[string]string
 
-func showWetestAsset(assets map[string]*WetestAsset) {
-	index := 1
-	for tag, item := range assets {
-		log.Printf("%v: [tag]: %v, [name]:%v", index, tag, item.FullName)
-		index++
-	}
-}
+// fullname->model，线下录入的全名到model
+var wetestHandFullname2Model map[string]string
+
+// benchmark's model->alias name
+var benchmarkModelMap map[string]Data
 
 func main() {
 	flag.Parse()
@@ -86,13 +86,25 @@ func main() {
 			delete(wetestBadAsset, tag)
 		}
 	}
+	exportEpoNameMap("model.xlsx", wetestGoodFullname2Model)
 
 	// showWetestAsset(wetestBadAsset) //312个
-	nameMap := epoAsset2NameMap(wetestBadAsset)
-	showEpoNameMap(nameMap)
+	// nameMap := epoAsset2NameMap(wetestBadAsset)
+	// showEpoNameMap(nameMap)
 
-	exportEpoNameMap("209.xlsx", nameMap)
+	//exportEpoNameMap("209.xlsx", nameMap)
+	wetestHandFullname2Model, _ = loadEpoNameModelExcel(*nameModel)
+	// step3: 将线下录入合并回
+	for name, model := range wetestHandFullname2Model {
+		if _, ok := wetestModelMap[model]; !ok {
+			fmt.Printf("%v,%v\n", model, name)
+		}
+	}
 
-	// step3:
-	//  model->aliasname
+	// step4:
+	// benchmarkMap model->aliasname
+	// benchmarkModelMap, _ := loadBenchmark2ModelMap(*benchmark)
+
+
+	// 匹配
 }

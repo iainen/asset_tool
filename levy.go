@@ -21,10 +21,11 @@ var WeTestTitles = []string{
 }
 
 type ModelDetail struct {
-	Model    string
-	Product  string
-	Brand    string
-	Manu     string
+	Model     string
+	Product   string
+	Brand     string
+	Manu      string
+	AliasName string   // 短名称，比如Mate 10
 }
 
 // 资产编号(assetid)-机型(model)-(product)-品牌(brand)-厂商(manu)-pos
@@ -50,8 +51,6 @@ func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, map[str
 
 	titleRow := rows[0]
 	titleMap := detainTitles(WeTestTitles, titleRow)
-	log.Printf("len:%v, %v", len(titleRow), titleRow)
-	log.Printf("%v", titleMap)
 
 	var modelMap = make(map[string]*ModelDetail)
 	var outMap = make(map[string]*WetestAsset)
@@ -96,4 +95,12 @@ func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, map[str
 	}
 
 	return outMap, modelMap, nil
+}
+
+func showWetestAsset(assets map[string]*WetestAsset) {
+	index := 1
+	for tag, item := range assets {
+		log.Printf("%v: [tag]: %v, [name]:%v", index, tag, item.FullName)
+		index++
+	}
 }
