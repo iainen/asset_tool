@@ -20,14 +20,17 @@ var WeTestTitles = []string{
 	WetestAssetTag, WetestModel, WetestProudct, WetestBrand, WetestManu, WetestSerial, WetestIMEI, WetestPc,
 }
 
-// 资产编号(assetid)-机型(model)-(product)-品牌(brand)-厂商(manu)-pos
-type WetestAsset struct {
-	AssetTag string
+type ModelDetail struct {
 	Model    string
 	Product  string
 	Brand    string
 	Manu     string
+}
 
+// 资产编号(assetid)-机型(model)-(product)-品牌(brand)-厂商(manu)-pos
+type WetestAsset struct {
+	ModelDetail
+	AssetTag string
 	Serial   string
 	IMEI     string
 	Pc       string
@@ -36,7 +39,7 @@ type WetestAsset struct {
 }
 
 // 资产编号-> 手机信息表
-func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, error) {
+func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, map[string]*ModelDetail, error) {
 	f, err := excelize.OpenFile(inputFile)
 	if err != nil {
 		log.Fatalf("fail to open file: %v", err)
@@ -50,6 +53,7 @@ func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, error) 
 	log.Printf("len:%v, %v", len(titleRow), titleRow)
 	log.Printf("%v", titleMap)
 
+	var modelMap = make(map[string]*ModelDetail)
 	var outMap = make(map[string]*WetestAsset)
 	for _, row := range rows[1:] {
 		tag := row[titleMap[WetestAssetTag]]
@@ -64,14 +68,15 @@ func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, error) 
 		//log.Printf("tag:[%v], model:[%v], prod:[%v], manu:[%v], serial:[%v], imei:[%v], pc:[%v]",
 		//	tag, model, product, manu, serial, imei, pc)
 
-		item, ok := outMap[tag]
-		if !ok {
+		if item, ok := outMap[tag]; !ok {
 			outMap[tag] = &WetestAsset{
+				ModelDetail: ModelDetail{
+					Model: model,
+					Product: product,
+					Brand: brand,
+					Manu: manu,
+				},
 				AssetTag: tag,
-				Model: model,
-				Product: product,
-				Brand: brand,
-				Manu: manu,
 				Serial: serial,
 				IMEI: imei,
 				Pc: pc,
@@ -79,7 +84,16 @@ func loadWetestGoodExcel2Map(inputFile string) (map[string]*WetestAsset, error) 
 		} else {
 			log.Fatalf("error: duplicated asset tag:%v", item.AssetTag)
 		}
+
+		if _, ok := modelMap[model]; !ok {
+			modelMap[model] = & ModelDetail{
+				Model: model,
+				Product: product,
+				Brand: brand,
+				Manu: manu,
+			}
+		}
 	}
 
-	return outMap, nil
+	return outMap, modelMap, nil
 }

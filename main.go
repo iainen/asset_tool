@@ -13,8 +13,11 @@ var wetest = flag.String("wetest", "", "加载解析levy导出的数据库表")
 // tag->fullname
 var epoAssetsMap map[string]EpoAsset
 
-// tag->model, tag->model->fullname
+// tag->model, tag->model, fullname
 var wetestGoodAsset map[string]*WetestAsset
+
+// model, fullname
+var wetestModelMap map[string]*ModelDetail
 
 // tag->fullname
 var wetestBadAsset = make(map[string]*WetestAsset, 0)
@@ -41,7 +44,7 @@ func main() {
 
 	// tag->model
 	if *wetest != "" {
-		wetestGoodAsset, _ = loadWetestGoodExcel2Map(*wetest)
+		wetestGoodAsset, wetestModelMap, _ = loadWetestGoodExcel2Map(*wetest)
 	}
 
 	// step1: 连接两张表
@@ -70,10 +73,11 @@ func main() {
 			wetestGoodAsset[tag] = item
 			item.Model = model
 
-			// TODO: 需要一张model->detail表
-			item.Product = ""
-			item.Brand = ""
-			item.Manu = ""
+			// 查找model->detail表
+			detail := wetestModelMap[model]
+			item.Product = detail.Product
+			item.Brand = detail.Brand
+			item.Manu = detail.Manu
 
 			delete(wetestBadAsset, tag)
 		}
