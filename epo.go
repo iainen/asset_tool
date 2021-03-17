@@ -57,3 +57,23 @@ func loadEpoExcel2AssetMap(inputFile string) (map[string]EpoAsset, error) {
 
 	return epoMap, nil
 }
+
+// fullname->brand
+func epoAsset2NameMap(assets map[string]*WetestAsset) map[string]string {
+	nameMap := make(map[string]string, 0)
+	for _, asset := range assets {
+		if _, ok := nameMap[asset.FullName]; !ok {
+			nameMap[asset.FullName] = asset.Manu
+		}
+	}
+
+	return nameMap
+}
+
+func showEpoNameMap(nameMap map[string]string) {
+	index := 1
+	for name, manu := range nameMap {
+		log.Printf("%v: [name]: %v, [manu]:%v", index, name, manu)
+		index++
+	}
+}

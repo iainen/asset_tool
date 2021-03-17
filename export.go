@@ -44,3 +44,34 @@ func exportExcel(outfile string, modelMap map[string]Data) {
 		fmt.Println(err)
 	}
 }
+
+func exportEpoBadExcel(outfile string, assets map[string]*WetestAsset) {
+	f := excelize.NewFile()
+	// Create a new sheet.
+	index := f.NewSheet("Sheet")
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+
+	titles := []string{
+		EpoAssetTag,
+		EpoManu,
+		EpoName,
+	}
+
+	for i, v := range titles {
+		f.SetCellValue("Sheet", fmt.Sprintf("%c%d", int('A')+i, 1), v)
+	}
+
+	line := 2
+	for tag, item := range assets {
+		f.SetCellValue("Sheet", fmt.Sprintf("A%d", line), tag)
+		f.SetCellValue("Sheet", fmt.Sprintf("B%d", line), item.Manu)
+		f.SetCellValue("Sheet", fmt.Sprintf("C%d", line), item.FullName)
+		line++
+	}
+
+	// Save spreadsheet by the given path.
+	if err := f.SaveAs(outfile); err != nil {
+		fmt.Println(err)
+	}
+}

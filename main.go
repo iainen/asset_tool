@@ -37,18 +37,19 @@ func main() {
 	flag.Parse()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
-	// tag->fullname
+	// epoAssetsMap：tag->fullname
 	if *epo != "" {
 		epoAssetsMap, _ = loadEpoExcel2AssetMap(*epo)
 	}
 
-	// tag->model
+	// wetestGoodAsset: tag->model
+	// wetestModelMap:  model->model_detail
 	if *wetest != "" {
 		wetestGoodAsset, wetestModelMap, _ = loadWetestGoodExcel2Map(*wetest)
 	}
 
-	// step1: 连接两张表
-	//	wetestGoodAsset: tag->model->fullname
+	// step1: 生成两张表
+	//	wetestGoodAsset: tag->(model,fullname)
 	//  wetestBadAsset:  tag->fullname
 	for tag, item := range epoAssetsMap {
 		if wetestItem, ok := wetestGoodAsset[tag]; ok {
@@ -57,11 +58,14 @@ func main() {
 			wetestBadAsset[tag] = & WetestAsset{
 				AssetTag: tag,
 				FullName: item.Name,
+				ModelDetail: ModelDetail{
+					Manu: item.Manu,
+				},
 			}
 		}
 	}
 
-	// step2: 处理epo中找不到的数目
+	// step2: 处理epo中缺少机型的哪些资产
 	// wetestGoodFullname2Model: fullname->model
 	wetestGoodFullname2Model = make(map[string]string)
 	for _, item := range wetestGoodAsset {
@@ -83,7 +87,9 @@ func main() {
 		}
 	}
 
-	showWetestAsset(wetestBadAsset) //312个
+	// showWetestAsset(wetestBadAsset) //312个
+	nameMap := epoAsset2NameMap(wetestBadAsset)
+	showEpoNameMap(nameMap)
 
 	// step3:
 	//  model->aliasname
