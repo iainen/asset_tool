@@ -27,11 +27,36 @@ var wetestBadAsset = make(map[string]*WetestAsset, 0)
 // fullname->model
 var wetestGoodFullname2Model map[string]string
 
+// epoBrand->brand,manu
+var wetestGoodEpobrand2Brand map[string]*ManuBrand
+
 // fullname->model，线下录入的全名到model
 var wetestHandFullname2Model map[string]string
 
 // benchmark's model->alias name
 var benchmarkModelMap map[string]Data
+
+type ManuBrand struct {
+	Brand     string
+	Manu      string
+}
+
+func filterGoodAsset(goodAssets map[string]*WetestAsset) (
+	nameMap map[string]string,
+	bandMap map[string]*ManuBrand) {
+
+	nameMap = make(map[string]string)
+	bandMap = make(map[string]*ManuBrand)
+	for _, item := range goodAssets {
+		nameMap[item.FullName] = item.Model
+		bandMap[item.EpoBrand] = &ManuBrand{
+			Brand: item.Brand,
+			Manu: item.Manu,
+		}
+	}
+
+	return nameMap, bandMap
+}
 
 func main() {
 	flag.Parse()
@@ -48,9 +73,9 @@ func main() {
 		wetestGoodAsset, wetestModelMap, _ = loadWetestGoodExcel2Map(*wetest)
 	}
 
-	// step1: 生成两张表
-	//	wetestGoodAsset: tag->(model,fullname)
-	//  wetestBadAsset:  tag->fullname
+	// step1: 两张表
+	//	更新wetestGoodAsset: tag->(model,fullName,epoBrand)
+	//  生成wetestBadAsset:  tag->(fullname, epoBrand)
 	for tag, item := range epoAssetsMap {
 		if wetestItem, ok := wetestGoodAsset[tag]; ok {
 			wetestItem.FullName = item.Name
@@ -66,11 +91,7 @@ func main() {
 
 	// step2: 处理epo中缺少机型的哪些资产
 	// wetestGoodFullname2Model: fullname->model
-	wetestGoodFullname2Model = make(map[string]string)
-	for _, item := range wetestGoodAsset {
-		wetestGoodFullname2Model[item.FullName] = item.Model
-	}
-
+	wetestGoodFullname2Model, _ = filterGoodAsset(wetestGoodAsset)
 	for tag, item := range wetestBadAsset {
 		if model, ok := wetestGoodFullname2Model[item.FullName]; ok {
 			wetestGoodAsset[tag] = item
@@ -85,7 +106,11 @@ func main() {
 			delete(wetestBadAsset, tag)
 		}
 	}
-	// exportEpoNameMap("model.xlsx", wetestGoodFullname2Model)
+
+	// 导出详细的机型信息表
+	wetestGoodFullname2Model, wetestGoodEpobrand2Brand = filterGoodAsset(wetestGoodAsset)
+	exportEpoNameMap("name.xlsx", wetestGoodFullname2Model)
+	exportBrandMap("brand.xlsx", wetestGoodEpobrand2Brand)
 
 	// showWetestAsset(wetestBadAsset) //312个
 	// nameMap := epoAsset2NameMap(wetestBadAsset)
