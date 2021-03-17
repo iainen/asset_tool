@@ -206,7 +206,7 @@ func loadEpoNameModelExcel(inputFile string) (map[string]string, error) {
 // model->detail
 func loadEpoNewModelExcel(inputFile string, sheetIndex int, input map[string]*ModelDetail) {
 	var epoNameTitles = []string{
-		WetestModel, WetestBrand, WetestManu,
+		EpoName, WetestModel, WetestBrand, WetestManu,
 	}
 
 	f, err := excelize.OpenFile(inputFile)
@@ -220,11 +220,20 @@ func loadEpoNewModelExcel(inputFile string, sheetIndex int, input map[string]*Mo
 	titleRow := rows[0]
 	titleMap := detainTitles(epoNameTitles, titleRow)
 
+	index := 0
 	for _, row := range rows[1:] {
 		model := row[titleMap[WetestModel]]
 		brand := row[titleMap[WetestBrand]]
 		manu := row[titleMap[WetestManu]]
-		// log.Printf("%v-->%v", name, model)
+		name := row[titleMap[EpoName]]
+
+		// TODO: 读取第二个表时，不只为何会读空行，这里判断是否读完所有行
+		if model == "" && brand == "" && manu == "" {
+			break
+		}
+
+		index++
+		// log.Printf("%v: %v-->%v", index, name, model)
 		if _, ok := input[model]; !ok {
 			input[model] = &ModelDetail{
 				Model: model,
@@ -232,7 +241,7 @@ func loadEpoNewModelExcel(inputFile string, sheetIndex int, input map[string]*Mo
 				Manu:  manu,
 			}
 		} else {
-			log.Fatalf("error: duplicated asset model:%v", model)
+			log.Fatalf("error: duplicated asset model:%v, name:%v", model, name)
 		}
 	}
 }

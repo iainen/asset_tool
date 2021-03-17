@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 )
 
@@ -129,12 +128,14 @@ func main() {
 	newModel := make(map[string]string)
 	for name, model := range wetestHandFullname2Model {
 		if _, ok := wetestModelMap[model]; !ok {
-			fmt.Printf("%v,%v\n", model, name)
+			log.Printf("%v,%v\n", model, name)
 			newModel[model] = name
 		}
 	}
-	//exportEpoNameMap("newModel.xlsx", newModel)
-	
+	if len(newModel) != 0 {
+		exportEpoNameMap("newModel.xlsx", newModel)
+	}
+
 	// step4:
 	// benchmarkMap model->aliasname
 	// benchmarkModelMap, _ := loadBenchmark2ModelMap(*benchmark)
