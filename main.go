@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
@@ -52,48 +51,33 @@ type MobileDeviceBenchmark struct {
 	Data   []Data `json:"data"`
 }
 
-func exportExcel(outfile string, modelMap map[string][]Data) {
-	f := excelize.NewFile()
-	// Create a new sheet.
-	index := f.NewSheet("Sheet")
-	// Set active sheet of the workbook.
-	f.SetActiveSheet(index)
-
-	titles := []string{
-		"型号",
-		"手机名",
-		"厂商",
-		"CPU名",
-		"异性屏",
-		"分辨率",
-		"上市日期",
+func loadBenchmark2ModelMap(inputfile string) (map[string]Data, error) {
+	jsonBytes, err := os.ReadFile(inputfile)
+	if err != nil {
+		log.Printf("fail to open logfile: %v", err)
+		return nil, err
 	}
 
-	for i, v := range titles {
-		//log.Printf("%c%d:%v", int('A')+i, 1, v)
-		f.SetCellValue("Sheet", fmt.Sprintf("%c%d", int('A')+i, 1), v)
+	var mobileBenchmark MobileDeviceBenchmark
+	err = json.Unmarshal(jsonBytes, &mobileBenchmark)
+	//if err != nil {
+	//	log.Printf("fail to parse json: %v", err)
+	//	return nil, err
+	//}
+
+	benchMap := make(map[string]Data)
+	//log.Printf("model number: %v", len(benchMap))
+	index := 0
+	for _, item := range mobileBenchmark.Data {
+		index ++
+		benchMap[item.Model] = item
+		log.Printf("%v: [%v] --> [%v]", index, item.Model, item.Name)
 	}
 
-	line := 2
-	for model, names := range modelMap {
-		name := names[0]
-		f.SetCellValue("Sheet", fmt.Sprintf("A%d", line), model)
-		f.SetCellValue("Sheet", fmt.Sprintf("B%d", line), name.Name)
-		f.SetCellValue("Sheet", fmt.Sprintf("C%d", line), name.Manu)
-		f.SetCellValue("Sheet", fmt.Sprintf("D%d", line), name.Cpuname)
-		f.SetCellValue("Sheet", fmt.Sprintf("E%d", line), name.Notch)
-		f.SetCellValue("Sheet", fmt.Sprintf("F%d", line), name.ScreenRatio)
-		f.SetCellValue("Sheet", fmt.Sprintf("G%d", line), name.Date)
-		line++
-	}
-
-	// Save spreadsheet by the given path.
-	if err := f.SaveAs(outfile); err != nil {
-		fmt.Println(err)
-	}
+	return benchMap, nil
 }
 
-func loadFromBenchmark(inputfile string) (map[string][]Data, error) {
+func loadBenchmark2NameMap(inputfile string) (map[string][]Data, error) {
 	jsonBytes, err := os.ReadFile(inputfile)
 	if err != nil {
 		log.Printf("fail to open logfile: %v", err)
@@ -118,6 +102,46 @@ func loadFromBenchmark(inputfile string) (map[string][]Data, error) {
 	}
 
 	return benchMap, nil
+}
+
+func exportExcel(outfile string, modelMap map[string]Data) {
+	f := excelize.NewFile()
+	// Create a new sheet.
+	index := f.NewSheet("Sheet")
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+
+	titles := []string{
+		"型号",
+		"手机名",
+		"厂商",
+		"CPU名",
+		"异性屏",
+		"分辨率",
+		"上市日期",
+	}
+
+	for i, v := range titles {
+		//log.Printf("%c%d:%v", int('A')+i, 1, v)
+		f.SetCellValue("Sheet", fmt.Sprintf("%c%d", int('A')+i, 1), v)
+	}
+
+	line := 2
+	for model, item := range modelMap {
+		f.SetCellValue("Sheet", fmt.Sprintf("A%d", line), model)
+		f.SetCellValue("Sheet", fmt.Sprintf("B%d", line), item.Name)
+		f.SetCellValue("Sheet", fmt.Sprintf("C%d", line), item.Manu)
+		//f.SetCellValue("Sheet", fmt.Sprintf("D%d", line), name.Cpuname)
+		//f.SetCellValue("Sheet", fmt.Sprintf("E%d", line), name.Notch)
+		//f.SetCellValue("Sheet", fmt.Sprintf("F%d", line), name.ScreenRatio)
+		//f.SetCellValue("Sheet", fmt.Sprintf("G%d", line), name.Date)
+		line++
+	}
+
+	// Save spreadsheet by the given path.
+	if err := f.SaveAs(outfile); err != nil {
+		fmt.Println(err)
+	}
 }
 
 const (
@@ -259,15 +283,16 @@ func loadFrom4500(inputFile string) (map[string]*Model, error) {
 var benchmark = flag.String("benchmark", "", "benchmark json file")
 var levy4500 = flag.String("levy4500", "", "levy 4500 xlsx file")
 var out = flag.String("output", "", "export to a excel file")
+var epo = flag.String("epo", "", "load from excel file")
 
 func main() {
 	flag.Parse()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
-	var benchModelMap map[string][]Data
+	var benchNameMap map[string][]Data
 	var err error
 	if *benchmark != "" {
-		benchModelMap, err = loadFromBenchmark(*benchmark)
+		benchNameMap, err = loadBenchmark2NameMap(*benchmark)
 		if err != nil {
 			return
 		}
@@ -280,13 +305,20 @@ func main() {
 			return
 		}
 
-		if benchModelMap != nil {
-			nameList := make([]string, len(benchModelMap), len(benchModelMap))
-			for name, _ := range benchModelMap {
-				nameList = append(nameList, name)
+		if benchNameMap != nil {
+			nameList := make([]string, 0, len(benchNameMap))
+			for name, _ := range benchNameMap {
+				if len(name) >= 2 { // some bad typename
+					nameList = append(nameList, name)
+				}
 			}
 
-			sort.Strings(nameList)
+			//sort.Strings(nameList)
+			//for i, v := range nameList {
+			//	log.Printf("%v: %v", i, v)
+			//}
+			//return
+
 			for _, item := range maps {
 				for _, asset := range item.Assets {
 					//log.Printf("  %v", asset.FullName)
@@ -294,14 +326,13 @@ func main() {
 					for i := len(nameList)-1; i >= 0; i-- {
 						if strings.Contains(strings.ToLower(asset.FullName), strings.ToLower(nameList[i])) {
 							found = true
-							log.Printf("%v --> %v", nameList[i], asset.FullName)
+							//log.Printf("[Y] %v --> %v", nameList[i], asset.FullName)
 							break
 						}
 					}
 
 					if !found {
-						modelName := item.Models[0].ModelName
-						log.Printf("X %v: %v: %v", asset.FullName, modelName, benchModelMap[modelName])
+						log.Printf("[X] %v", asset.FullName)
 					}
 				}
 			}
@@ -309,6 +340,11 @@ func main() {
 	}
 
 	if *out != "" {
+		benchModelMap, _ := loadBenchmark2ModelMap(*benchmark)
 		exportExcel(*out, benchModelMap)
+	}
+
+	if *epo != "" {
+		_, _ = loadEpoExcel2AssetMap(*epo)
 	}
 }
