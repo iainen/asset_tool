@@ -121,18 +121,21 @@ func main() {
 	// showEpoNameMap(nameMap)
 
 	// exportEpoNameMap("209.xlsx", nameMap)
-	wetestHandFullname2Model, _ = loadEpoNameModelExcel(*nameModel)
+
 	// step3: 将线下录入合并回
+	loadEpoNewModelExcel(*nameModel, 1, wetestModelMap)
+
+	wetestHandFullname2Model, _ = loadEpoNameModelExcel(*nameModel)
+	newModel := make(map[string]string)
 	for name, model := range wetestHandFullname2Model {
 		if _, ok := wetestModelMap[model]; !ok {
 			fmt.Printf("%v,%v\n", model, name)
+			newModel[model] = name
 		}
 	}
-
+	//exportEpoNameMap("newModel.xlsx", newModel)
+	
 	// step4:
 	// benchmarkMap model->aliasname
 	// benchmarkModelMap, _ := loadBenchmark2ModelMap(*benchmark)
-
-
-	// 匹配
 }

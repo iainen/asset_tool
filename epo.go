@@ -202,3 +202,37 @@ func loadEpoNameModelExcel(inputFile string) (map[string]string, error) {
 
 	return nameModelMap, nil
 }
+
+// model->detail
+func loadEpoNewModelExcel(inputFile string, sheetIndex int, input map[string]*ModelDetail) {
+	var epoNameTitles = []string{
+		WetestModel, WetestBrand, WetestManu,
+	}
+
+	f, err := excelize.OpenFile(inputFile)
+	if err != nil {
+		log.Fatalf("fail to open file: %v", err)
+	}
+
+	sheetName := f.GetSheetName(sheetIndex)
+	rows, err := f.GetRows(sheetName)
+
+	titleRow := rows[0]
+	titleMap := detainTitles(epoNameTitles, titleRow)
+
+	for _, row := range rows[1:] {
+		model := row[titleMap[WetestModel]]
+		brand := row[titleMap[WetestBrand]]
+		manu := row[titleMap[WetestManu]]
+		// log.Printf("%v-->%v", name, model)
+		if _, ok := input[model]; !ok {
+			input[model] = &ModelDetail{
+				Model: model,
+				Brand: brand,
+				Manu:  manu,
+			}
+		} else {
+			log.Fatalf("error: duplicated asset model:%v", model)
+		}
+	}
+}
