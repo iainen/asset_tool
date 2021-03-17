@@ -54,13 +54,12 @@ func main() {
 	for tag, item := range epoAssetsMap {
 		if wetestItem, ok := wetestGoodAsset[tag]; ok {
 			wetestItem.FullName = item.Name
+			wetestItem.EpoBrand = item.Brand
 		} else { // not found
 			wetestBadAsset[tag] = & WetestAsset{
 				AssetTag: tag,
 				FullName: item.Name,
-				ModelDetail: ModelDetail{
-					Manu: item.Manu,
-				},
+				EpoBrand: item.Brand,
 			}
 		}
 	}
@@ -86,13 +85,13 @@ func main() {
 			delete(wetestBadAsset, tag)
 		}
 	}
-	exportEpoNameMap("model.xlsx", wetestGoodFullname2Model)
+	// exportEpoNameMap("model.xlsx", wetestGoodFullname2Model)
 
 	// showWetestAsset(wetestBadAsset) //312个
 	// nameMap := epoAsset2NameMap(wetestBadAsset)
 	// showEpoNameMap(nameMap)
 
-	//exportEpoNameMap("209.xlsx", nameMap)
+	// exportEpoNameMap("209.xlsx", nameMap)
 	wetestHandFullname2Model, _ = loadEpoNameModelExcel(*nameModel)
 	// step3: 将线下录入合并回
 	for name, model := range wetestHandFullname2Model {

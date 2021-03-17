@@ -36,6 +36,7 @@ type WetestAsset struct {
 	IMEI     string
 	Pc       string
 
+	EpoBrand string
 	FullName string
 }
 

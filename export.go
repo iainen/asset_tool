@@ -54,7 +54,7 @@ func exportEpoBadExcel(outfile string, assets map[string]*WetestAsset) {
 
 	titles := []string{
 		EpoAssetTag,
-		EpoManu,
+		EpoBrand,
 		EpoName,
 	}
 

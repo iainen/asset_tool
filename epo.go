@@ -7,18 +7,18 @@ import (
 )
 
 const (
-	EpoAssetTag         = "资产编码"
-	EpoManu             = "品牌名称"
-	EpoName             = "规格型号"
+	EpoAssetTag = "资产编码"
+	EpoBrand    = "品牌名称"
+	EpoName     = "规格型号"
 )
 
 var EpoTitles = []string{
-	EpoAssetTag, EpoManu, EpoName,
+	EpoAssetTag, EpoBrand, EpoName,
 }
 
 type EpoAsset struct {
 	AssetTag string
-	Manu     string
+	Brand    string
 	Name     string //very long name
 }
 
@@ -38,15 +38,15 @@ func loadEpoExcel2AssetMap(inputFile string) (map[string]EpoAsset, error) {
 	var epoMap = make(map[string]EpoAsset)
 	for _, row := range rows[1:] {
 		tag := row[titleMap[EpoAssetTag]]
-		manu := row[titleMap[EpoManu]]
+		brand := row[titleMap[EpoBrand]]
 		name := row[titleMap[EpoName]]
 
-		//log.Printf("tag:[%v], manu:[%v], name:[%v]", tag, manu, name)
+		//log.Printf("tag:[%v], brand:[%v], name:[%v]", tag, brand, name)
 		item, ok := epoMap[tag]
 		if !ok {
 			epoMap[tag] = EpoAsset{
 				AssetTag: tag,
-				Manu: manu,
+				Brand: brand,
 				Name: name,
 			}
 		} else {
@@ -62,7 +62,7 @@ func epoAsset2NameMap(assets map[string]*WetestAsset) map[string]string {
 	nameMap := make(map[string]string, 0)
 	for _, asset := range assets {
 		if _, ok := nameMap[asset.FullName]; !ok {
-			nameMap[asset.FullName] = asset.Manu
+			nameMap[asset.FullName] = asset.EpoBrand
 		}
 	}
 
@@ -86,7 +86,7 @@ func exportEpoNameMap(outfile string, nameMap map[string]string) {
 
 	titles := []string{
 		EpoName,
-		EpoManu,
+		EpoBrand,
 		WetestModel,
 	}
 
@@ -110,7 +110,7 @@ func exportEpoNameMap(outfile string, nameMap map[string]string) {
 // fullname->model
 func loadEpoNameModelExcel(inputFile string) (map[string]string, error) {
 	var epoNameTitles = []string{
-		EpoName, EpoManu, WetestModel,
+		EpoName, EpoBrand, WetestModel,
 	}
 
 	f, err := excelize.OpenFile(inputFile)
