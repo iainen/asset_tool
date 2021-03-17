@@ -27,8 +27,11 @@ var wetestBadAsset = make(map[string]*WetestAsset, 0)
 // fullname->model
 var wetestGoodFullname2Model map[string]string
 
-// epoBrand->brand,manu
-var wetestGoodEpobrand2Brand map[string]*ManuBrand
+// brand->manu
+var wetestGoodBrand map[string]string
+
+// manu
+var wetestGoodManu map[string]string
 
 // fullname->model，线下录入的全名到model
 var wetestHandFullname2Model map[string]string
@@ -43,19 +46,19 @@ type ManuBrand struct {
 
 func filterGoodAsset(goodAssets map[string]*WetestAsset) (
 	nameMap map[string]string,
-	bandMap map[string]*ManuBrand) {
+	bandMap map[string]string,
+	manuMap map[string]string) {
 
 	nameMap = make(map[string]string)
-	bandMap = make(map[string]*ManuBrand)
+	bandMap = make(map[string]string)
+	manuMap = make(map[string]string)
 	for _, item := range goodAssets {
 		nameMap[item.FullName] = item.Model
-		bandMap[item.EpoBrand] = &ManuBrand{
-			Brand: item.Brand,
-			Manu: item.Manu,
-		}
+		bandMap[item.Brand] = item.Manu
+		manuMap[item.Manu] = ""
 	}
 
-	return nameMap, bandMap
+	return nameMap, bandMap, manuMap
 }
 
 func main() {
@@ -91,7 +94,7 @@ func main() {
 
 	// step2: 处理epo中缺少机型的哪些资产
 	// wetestGoodFullname2Model: fullname->model
-	wetestGoodFullname2Model, _ = filterGoodAsset(wetestGoodAsset)
+	wetestGoodFullname2Model, _, _ = filterGoodAsset(wetestGoodAsset)
 	for tag, item := range wetestBadAsset {
 		if model, ok := wetestGoodFullname2Model[item.FullName]; ok {
 			wetestGoodAsset[tag] = item
@@ -108,9 +111,10 @@ func main() {
 	}
 
 	// 导出详细的机型信息表
-	wetestGoodFullname2Model, wetestGoodEpobrand2Brand = filterGoodAsset(wetestGoodAsset)
+	wetestGoodFullname2Model, wetestGoodBrand, wetestGoodManu = filterGoodAsset(wetestGoodAsset)
 	exportEpoNameMap("name.xlsx", wetestGoodFullname2Model)
-	exportBrandMap("brand.xlsx", wetestGoodEpobrand2Brand)
+	exportBrandMap("brand.xlsx", wetestGoodBrand)
+	exportManuMap("manu.xlsx", wetestGoodManu)
 
 	// showWetestAsset(wetestBadAsset) //312个
 	// nameMap := epoAsset2NameMap(wetestBadAsset)

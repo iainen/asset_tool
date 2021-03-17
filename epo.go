@@ -109,7 +109,7 @@ func exportEpoNameMap(outfile string, nameMap map[string]string) {
 	}
 }
 
-func exportBrandMap(outfile string, brandMap map[string]*ManuBrand) {
+func exportBrandMap(outfile string, brandMap map[string]string) {
 	f := excelize.NewFile()
 
 	sheet := "Sheet"
@@ -119,7 +119,6 @@ func exportBrandMap(outfile string, brandMap map[string]*ManuBrand) {
 	f.SetActiveSheet(index)
 
 	titles := []string{
-		EpoBrand,
 		WetestBrand,
 		WetestManu,
 	}
@@ -129,10 +128,9 @@ func exportBrandMap(outfile string, brandMap map[string]*ManuBrand) {
 	}
 
 	line := 2
-	for epoBrand, item := range brandMap {
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", line), epoBrand)
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", line), item.Brand)
-		f.SetCellValue(sheet, fmt.Sprintf("C%d", line), item.Manu)
+	for brand, item := range brandMap {
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", line), brand)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", line), item)
 		line++
 	}
 
@@ -142,6 +140,34 @@ func exportBrandMap(outfile string, brandMap map[string]*ManuBrand) {
 	}
 }
 
+func exportManuMap(outfile string, manuMap map[string]string) {
+	f := excelize.NewFile()
+
+	sheet := "Sheet"
+	// Create a new sheet.
+	index := f.NewSheet(sheet)
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+
+	titles := []string{
+		WetestManu,
+	}
+
+	for i, v := range titles {
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", int('A')+i, 1), v)
+	}
+
+	line := 2
+	for item,_ := range manuMap {
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", line), item)
+		line++
+	}
+
+	// Save spreadsheet by the given path.
+	if err := f.SaveAs(outfile); err != nil {
+		fmt.Println(err)
+	}
+}
 
 // fullname->model
 func loadEpoNameModelExcel(inputFile string) (map[string]string, error) {
