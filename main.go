@@ -9,7 +9,6 @@ var benchmark = flag.String("benchmark", "", "benchmark json file")
 var epo = flag.String("epo", "", "加载解析epo导出的excel表")
 var wetest = flag.String("wetest", "", "加载解析levy导出的数据库excel表")
 var nameModel = flag.String("nameModel", "", "加载线下名称-机型excel表")
-var out = flag.String("output", "", "export to a excel file")
 
 // tag->fullname
 var epoAssetsMap map[string]EpoAsset
@@ -22,6 +21,7 @@ var wetestModelMap map[string]*ModelDetail
 
 // tag->fullname
 var wetestBadAsset = make(map[string]*WetestAsset, 0)
+var wetestBad2Asset = make(map[string]*WetestAsset, 0)
 
 // fullname->model
 var wetestGoodFullname2Model map[string]string
@@ -90,6 +90,7 @@ func main() {
 			}
 		}
 	}
+	// 输出: tag->name表，wetestBadAsset: 没有机型信息，500个左右
 
 	// step2: 处理epo中缺少机型的哪些资产
 	// wetestGoodFullname2Model: fullname->model
@@ -108,6 +109,8 @@ func main() {
 			delete(wetestBadAsset, tag)
 		}
 	}
+	// 输出：tag->fullname，wetestBadAsset: 新机器，但是名称可能有重复，，312个
+	// showWetestAsset(wetestBadAsset) //312个
 
 	// 导出详细的机型信息表
 	wetestGoodFullname2Model, wetestGoodBrand, wetestGoodManu = filterGoodAsset(wetestGoodAsset)
@@ -115,15 +118,18 @@ func main() {
 	exportBrandMap("brand.xlsx", wetestGoodBrand)
 	exportManuMap("manu.xlsx", wetestGoodManu)
 
-	// showWetestAsset(wetestBadAsset) //312个
-	// nameMap := epoAsset2NameMap(wetestBadAsset)
-	// showEpoNameMap(nameMap)
+	// 输出：badNameMap: 没有机型信息，且去除重复名称，209个
+	badNameMap := epoAssetName2BrandMap(wetestBadAsset)
+	showEpoNameMap(badNameMap)
 
-	// exportEpoNameMap("209.xlsx", nameMap)
+	// 导出文件，该文件需要手动补充机型信息
+	exportEpoNameMap("209.xlsx", badNameMap)
 
-	// step3: 将线下录入合并回
+	// step3: 将线下录入的 模型-厂商-名称 合并回
 	loadEpoNewModelExcel(*nameModel, 1, wetestModelMap)
 
+	// 加载手动编辑的全名-模型名表，但是没有模型的详细信息，209个
+	// 输出，模型-全名表，模型不重复，这些是新增的模型，需要手动补齐
 	wetestHandFullname2Model, _ = loadEpoNameModelExcel(*nameModel)
 	newModel := make(map[string]string)
 	for name, model := range wetestHandFullname2Model {
@@ -136,7 +142,30 @@ func main() {
 		exportEpoNameMap("newModel.xlsx", newModel)
 	}
 
-	// step4:
+	// 对312个设备，利用名称相等，获得机型；利用机型获得机型详细信息
+	for tag, item := range wetestBadAsset {
+		// 匹配名称信息
+		if model,ok := wetestHandFullname2Model[item.FullName]; ok {
+			// 匹配机型信息机型
+			if detail, ok := wetestModelMap[model]; ok {
+				log.Printf("find : %v,%v\n", model, item.FullName)
+				item.Model = model
+				item.Product = detail.Product
+				item.Brand = detail.Brand
+				item.Manu = detail.Manu
+			} else {
+				log.Fatalf("error: not find model:%v, name:%v", model, tag)
+			}
+		} else {
+			log.Fatalf("error: not find tag:%v, name: %v", tag, item.FullName)
+		}
+	}
+
+	// step4: 生成所有数据的总表
+	//   tag -> model
+	// 4450 + 312
+
+	// step5: 为总表配置别名
 	// benchmarkMap model->aliasname
 	// benchmarkModelMap, _ := loadBenchmark2ModelMap(*benchmark)
 }

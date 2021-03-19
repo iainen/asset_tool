@@ -58,7 +58,7 @@ func loadEpoExcel2AssetMap(inputFile string) (map[string]EpoAsset, error) {
 }
 
 // fullname->brand
-func epoAsset2NameMap(assets map[string]*WetestAsset) map[string]string {
+func epoAssetName2BrandMap(assets map[string]*WetestAsset) map[string]string {
 	nameMap := make(map[string]string, 0)
 	for _, asset := range assets {
 		if _, ok := nameMap[asset.FullName]; !ok {
@@ -239,6 +239,7 @@ func loadEpoNewModelExcel(inputFile string, sheetIndex int, input map[string]*Mo
 				Model: model,
 				Brand: brand,
 				Manu:  manu,
+				AliasName: name,
 			}
 		} else {
 			log.Fatalf("error: duplicated asset model:%v, name:%v", model, name)
