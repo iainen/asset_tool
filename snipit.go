@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"log"
 )
@@ -139,4 +140,38 @@ func loadFrom4500(inputFile string) (map[string]*Model, error) {
 			index++
 		}
 	*/
+}
+
+func exportSnipITExcel(outfile string, assets map[string]*WetestAsset) {
+	f := excelize.NewFile()
+	sheet := f.GetSheetName(0)
+
+	titles := []string{
+		EpoAssetTag,
+		EpoBrand,
+		EpoName,
+	}
+
+	for i, v := range titles {
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", int('A')+i, 1), v)
+	}
+
+	line := 2
+	for tag, item := range assets {
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", line), tag)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", line), item.Manu)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", line), item.Model)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", line), item.Brand)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", line), item.AliasName)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", line), item.IMEI)
+		f.SetCellValue(sheet, fmt.Sprintf("G%d", line), item.Pc)
+		f.SetCellValue(sheet, fmt.Sprintf("H%d", line), item.EpoBrand)
+		f.SetCellValue(sheet, fmt.Sprintf("I%d", line), item.FullName)
+		line++
+	}
+
+	// Save spreadsheet by the given path.
+	if err := f.SaveAs(outfile); err != nil {
+		fmt.Println(err)
+	}
 }

@@ -119,7 +119,7 @@ func main() {
 
 	// 输出：badNameMap: 没有机型信息，且去除重复名称，209个
 	badNameMap := epoAssetName2BrandMap(wetestBadAsset)
-	showEpoNameMap(badNameMap)
+	//showEpoNameMap(badNameMap)
 
 	// 导出文件，该文件需要手动补充机型信息
 	exportEpoNameMap("209.xlsx", badNameMap)
@@ -147,7 +147,8 @@ func main() {
 		if model,ok := wetestHandFullname2Model[item.FullName]; ok {
 			// 匹配机型信息机型
 			if detail, ok := wetestModelMap[model]; ok {
-				log.Printf("find : %v,%v\n", model, item.FullName)
+				wetestGoodAsset[tag] = item
+				// log.Printf("find : %v,%v\n", model, item.FullName)
 				item.Model = model
 				item.Product = detail.Product
 				item.Brand = detail.Brand
@@ -159,6 +160,8 @@ func main() {
 			log.Fatalf("error: not find tag:%v, name: %v", tag, item.FullName)
 		}
 	}
+
+	exportSnipITExcel("all.xlsx", wetestGoodAsset)
 
 	// step4: 生成所有数据的总表
 	//   tag -> model
