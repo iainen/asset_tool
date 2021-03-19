@@ -21,7 +21,6 @@ var wetestModelMap map[string]*ModelDetail
 
 // tag->fullname
 var wetestBadAsset = make(map[string]*WetestAsset, 0)
-var wetestBad2Asset = make(map[string]*WetestAsset, 0)
 
 // fullname->model
 var wetestGoodFullname2Model map[string]string
