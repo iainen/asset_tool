@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"log"
+	"strings"
 )
 
 const (
@@ -23,7 +24,7 @@ const (
 	USB_LEVEL         = "USB级别"
 	SCREEN_RESOLUTION = "分辨率"
 	RAM               = "内存"
-	ROM               = "存储大小"
+	ROM               = "存储"
 	WIFI              = "WiFi"
 	IS_5G             = "5G"
 	MODEL_NUMBER      = "Model Number"
@@ -147,9 +148,16 @@ func exportSnipITExcel(outfile string, assets map[string]*WetestAsset) {
 	sheet := f.GetSheetName(0)
 
 	titles := []string{
-		EpoAssetTag,
-		EpoBrand,
-		EpoName,
+		COMPANY,
+		ASSET_TAG,
+		SERIAL,
+		MODEL_NAME,
+		MODEL_NUMBER,
+		CATEGORY,
+		STATUS,
+		Manufacturer,
+		EPO_NAME,
+		IMEI,
 	}
 
 	for i, v := range titles {
@@ -157,16 +165,24 @@ func exportSnipITExcel(outfile string, assets map[string]*WetestAsset) {
 	}
 
 	line := 2
+	c := []byte{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'}
 	for tag, item := range assets {
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", line), tag)
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", line), item.Manu)
-		f.SetCellValue(sheet, fmt.Sprintf("C%d", line), item.Model)
-		f.SetCellValue(sheet, fmt.Sprintf("D%d", line), item.Brand)
-		f.SetCellValue(sheet, fmt.Sprintf("E%d", line), item.AliasName)
-		f.SetCellValue(sheet, fmt.Sprintf("F%d", line), item.IMEI)
-		f.SetCellValue(sheet, fmt.Sprintf("G%d", line), item.Pc)
-		f.SetCellValue(sheet, fmt.Sprintf("H%d", line), item.EpoBrand)
-		f.SetCellValue(sheet, fmt.Sprintf("I%d", line), item.FullName)
+		category := "Android"
+		if strings.Contains(item.Model, "iPhone") || strings.Contains(item.Model, "iPad") {
+			category = "iOS"
+		}
+
+		i := 0
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), "腾讯"); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), tag); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), item.Serial); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), item.Model); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), item.Brand); i++ //model_number
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), category); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), "新增"); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), item.Manu); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), item.FullName); i++
+		f.SetCellValue(sheet, fmt.Sprintf("%c%d", c[i], line), item.IMEI); i++
 		line++
 	}
 

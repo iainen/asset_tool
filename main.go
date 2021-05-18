@@ -9,6 +9,7 @@ var benchmark = flag.String("benchmark", "", "benchmark json file")
 var epo = flag.String("epo", "", "加载解析epo导出的excel表")
 var wetest = flag.String("wetest", "", "加载解析levy导出的数据库excel表")
 var nameModel = flag.String("nameModel", "", "加载线下名称-机型excel表")
+var ctModel = flag.String("ctModel", "", "加载线下名称-机型excel表")
 
 // tag->fullname
 var epoAssetsMap map[string]EpoAsset
@@ -161,13 +162,57 @@ func main() {
 		}
 	}
 
-	exportSnipITExcel("all.xlsx", wetestGoodAsset)
-
 	// step4: 生成所有数据的总表
-	//   tag -> model
-	// 4450 + 312
+	exportSnipITExcel("all.xlsx", wetestGoodAsset)
 
 	// step5: 为总表配置别名
 	// benchmarkMap model->aliasname
-	// benchmarkModelMap, _ := loadBenchmark2ModelMap(*benchmark)
+	benchmarkModelMap, _ = loadBenchmark2ModelMap(*benchmark)
+
+	ctModelMap := make(map[string]*ModelDetail)
+	loadCtModelExcel(*ctModel, 0, ctModelMap)
+
+	out := threeCheckModelMap(wetestGoodAsset, benchmarkModelMap, ctModelMap)
+	exportModelDetail("alias.xlsx", out)
+}
+
+
+type ModelDetail2 struct {
+	ModelDetail
+	AliasName1 string // fullname
+	AliasName2 string // from benchmark
+	AliasName3 string // from ct
+}
+
+func threeCheckModelMap(assets map[string]*WetestAsset, bench map[string]Data, ct map[string]*ModelDetail) map[string]*ModelDetail2 {
+	out := make(map[string]*ModelDetail2)
+	for _, item := range assets {
+		model := item.Model
+
+		detail, ok := wetestModelMap[model]
+		if !ok {
+			log.Fatalf("error: not find model:%v, name:%v", model, item.AssetTag)
+		}
+
+		if _, ok := out[model]; !ok {
+			out[model] = &ModelDetail2{
+				ModelDetail: *detail,
+				AliasName1:  item.FullName,
+			}
+		}
+
+		if out[model].AliasName2 == "" {
+			if item, ok := bench[model]; ok {
+				out[model].AliasName2 = item.Name
+			}
+		}
+
+		if out[model].AliasName3 == "" {
+			if item, ok := ct[model]; ok {
+				out[model].AliasName3 = item.AliasName
+			}
+		}
+	}
+
+	return out
 }

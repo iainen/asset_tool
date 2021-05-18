@@ -66,7 +66,7 @@ func loadBenchmark2ModelMap(inputfile string) (map[string]Data, error) {
 	for _, item := range mobileBenchmark.Data {
 		index ++
 		benchMap[item.Model] = item
-		log.Printf("%v: [%v] --> [%v]", index, item.Model, item.Name)
+		//log.Printf("%v: [%v] --> [%v]", index, item.Model, item.Name)
 	}
 
 	return benchMap, nil
