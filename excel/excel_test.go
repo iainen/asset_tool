@@ -21,6 +21,6 @@ func TestName(t *testing.T) {
 	lines := make([]Line, 0)
 	Load("../ct/custom-assets-report-2021-05-18-051041.xlsx", &lines)
 	for _, line := range lines {
-		log.Printf("line:%v", line)
+		log.Printf("%#v", line)
 	}
 }
