@@ -47,9 +47,8 @@ func populate(v reflect.Value, value string) error {
 }
 
 func Load(input string, ptr interface{}) error {
-	// Build map of fields keyed by effective name.
-	fields := make(map[string]reflect.Value)
-	names := make([]string, len(fields))
+	names := make([]string, 0)
+	fields := make(map[string]int)
 
 	rv := reflect.ValueOf(ptr)
 	log.Printf("kind:%v, type:%v", rv.Kind(), rv.Type())
@@ -58,17 +57,17 @@ func Load(input string, ptr interface{}) error {
 		log.Fatalf("ptr must be Slice")
 	}
 
-	v := reflect.ValueOf(ptr).Elem() // the struct variable
+	v := rv.Type().Elem() // the struct variable
 	for i := 0; i < v.NumField(); i++ {
-		fieldInfo := v.Type().Field(i) // a reflect.StructField
+		fieldInfo := v.Field(i) // a reflect.StructField
 		tag := fieldInfo.Tag           // a reflect.StructTag
 		name := tag.Get("excel")
 		if name == "" {
 			name = fieldInfo.Name
 		}
 
-		fields[name] = v.Field(i)
 		names = append(names, name)
+		fields[name] = i
 		//log.Printf("name:%v", name)
 	}
 
@@ -85,9 +84,13 @@ func Load(input string, ptr interface{}) error {
 	for _, row := range rows[1:] {
 		line := reflect.New(rv.Type().Elem()).Elem()
 		for _, name := range names {
-			_ = populate(line, row[titleMap[name]])
+			if _, ok := titleMap[name]; !ok {
+				continue
+			}
+			_ = populate(line.Field(fields[name]), row[titleMap[name]])
 		}
-		rv.Set(reflect.Append(rv, line))
+		log.Printf("line:%v", line)
+		//rv.Set(reflect.Append(rv, line))
 	}
 	return nil
 }
