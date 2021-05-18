@@ -50,8 +50,8 @@ func Load(input string, ptr interface{}) error {
 	names := make([]string, 0)
 	fields := make(map[string]int)
 
-	rv := reflect.ValueOf(ptr)
-	log.Printf("kind:%v, type:%v", rv.Kind(), rv.Type())
+	rv := reflect.ValueOf(ptr).Elem()
+	//log.Printf("kind:%v, type:%v", rv.Kind(), rv.Type())
 
 	if rv.Kind() != reflect.Slice {
 		log.Fatalf("ptr must be Slice")
@@ -89,8 +89,8 @@ func Load(input string, ptr interface{}) error {
 			}
 			_ = populate(line.Field(fields[name]), row[titleMap[name]])
 		}
-		log.Printf("line:%v", line)
-		//rv.Set(reflect.Append(rv, line))
+		//log.Printf("line:%v", line)
+		rv.Set(reflect.Append(rv, line))
 	}
 	return nil
 }
