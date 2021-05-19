@@ -57,7 +57,7 @@ func Load(input string, ptr interface{}) error {
 		log.Fatalf("ptr must be Slice")
 	}
 
-	v := rv.Type().Elem() // the struct variable
+	v := rv.Type().Elem().Elem() // the struct variable
 	for i := 0; i < v.NumField(); i++ {
 		fieldInfo := v.Field(i) // a reflect.StructField
 		tag := fieldInfo.Tag           // a reflect.StructTag
@@ -82,7 +82,7 @@ func Load(input string, ptr interface{}) error {
 	titleRow := rows[0]
 	titleMap := detainTitles(names, titleRow)
 	for _, row := range rows[1:] {
-		line := reflect.New(rv.Type().Elem()).Elem()
+		line := reflect.New(rv.Type().Elem().Elem()).Elem()
 		for _, name := range names {
 			if _, ok := titleMap[name]; !ok {
 				continue
@@ -90,7 +90,7 @@ func Load(input string, ptr interface{}) error {
 			_ = populate(line.Field(fields[name]), row[titleMap[name]])
 		}
 		//log.Printf("line:%v", line)
-		rv.Set(reflect.Append(rv, line))
+		rv.Set(reflect.Append(rv, line.Addr()))
 	}
 	return nil
 }
