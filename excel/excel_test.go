@@ -7,6 +7,17 @@ import (
 	"testing"
 )
 
+type CtLine struct {
+	Company string `csv:"公司"`
+	AssetTag string `csv:"资产标签"`
+	Model string `csv:"型号"`
+	Brand string `csv:"品牌"`
+	Manufacturer string `csv:"生产厂家"`
+	Category string `csv:"类别："`
+	Status string `csv:"状态"`
+	Location string `csv:"位置"`
+}
+
 type Line struct {
 	Company string
 	AssetTag string `excel:"Asset Tag" csv:"Asset Tag"`
@@ -44,9 +55,18 @@ func TestName2(t *testing.T) {
 func TestAll(t *testing.T) {
 	allMap := make(map[string]*Line, 0)
 	all := make([]*Line, 0)
-	Load("../ct/custom-assets-report-2021-05-18-051041.xlsx", &all)
+
+	inCsv, err := os.OpenFile("../ct/custom-assets-report-2021-05-19-112946.csv", os.O_RDWR|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+	defer inCsv.Close()
+	if err := gocsv.UnmarshalFile(inCsv, &all); err != nil {
+		panic(err)
+	}
 	for _, line := range all {
 		allMap[line.AssetTag] = line
+		log.Printf("-->: %#v", line)
 	}
 
 	export := make([]*Line, 0)
