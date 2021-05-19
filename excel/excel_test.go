@@ -21,7 +21,7 @@ type CtLine struct {
 type Line struct {
 	Company string
 	AssetTag string `excel:"Asset Tag" csv:"Asset Tag"`
-	Serial string `excel:"Serial Number" csv:"Serial Number"`
+//	Serial string `excel:"Serial Number" csv:"Serial Number"`
 	Model string `excel:"Model name" csv:"Model name"`
 	Brand string `excel:"Model Number" csv:"Model Number"`
 	Manufacturer string
@@ -53,10 +53,10 @@ func TestName2(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
+	all := make([]*CtLine, 0)
 	allMap := make(map[string]*Line, 0)
-	all := make([]*Line, 0)
 
-	inCsv, err := os.OpenFile("../ct/custom-assets-report-2021-05-19-112946.csv", os.O_RDWR|os.O_CREATE, os.ModePerm)
+	inCsv, err := os.OpenFile("../ct/custom-assets-report-2021-05-19-112946.csv", os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
@@ -65,8 +65,17 @@ func TestAll(t *testing.T) {
 		panic(err)
 	}
 	for _, line := range all {
-		allMap[line.AssetTag] = line
-		log.Printf("-->: %#v", line)
+		allMap[line.AssetTag] = &Line{
+			Company: line.Company,
+			AssetTag: line.AssetTag,
+			Model: line.Model,
+			Brand: line.Brand,
+			Manufacturer: line.Manufacturer,
+			Category: line.Category,
+			Status: line.Status,
+			Location: line.Location,
+		}
+		//log.Printf("-->: %#v", line)
 	}
 
 	export := make([]*Line, 0)
@@ -78,18 +87,22 @@ func TestAll(t *testing.T) {
 			f.Location = line.Location
 			f.Status = line.Status
 
-			// log.Printf("found: %#v", f)
+			log.Printf("found: %#v", f)
 			export = append(export, f)
 		} else {
 			log.Printf("not found: %#v", line)
 		}
 	}
 
-	outCsv, err := os.OpenFile("G10.csv", os.O_RDWR|os.O_CREATE, os.ModePerm)
+
+	outCsv, err := os.OpenFile("G10.csv", os.O_RDWR|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
 	defer outCsv.Close()
+	if _, err := outCsv.Seek(0, 0); err != nil { // Go to the start of the file
+		panic(err)
+	}
 
 	//csvContent, err := gocsv.MarshalString(&export)
 	//fmt.Println(csvContent) // Display all clients as CSV string
