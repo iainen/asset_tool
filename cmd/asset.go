@@ -12,6 +12,7 @@ import (
 
 var inCtFile = flag.String("in-ct-all", "", "加载解析ct导出的csv总表")
 var inCheckFile = flag.String("in-check", "", "加载解析盘点生成的xlsx表")
+var eamFile = flag.String("eam", "", "加载epo导出的csv表")
 
 // 资产管理系统上导出的总资产，csv格式
 type CtLine struct {
@@ -43,6 +44,26 @@ type Line struct {
 	Category string
 	Status string
 	Location string
+}
+
+// 用于导入http://eam.oa.com/上导出的个人设备
+type EamLine struct {
+	AssetTag string `csv:"资产编码"`
+	Name string `csv:"规格型号"`
+}
+
+func loadEamCsv(csvPath string) []*EamLine {
+	all := make([]*EamLine, 0)
+	inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+	defer inCsv.Close()
+	if err := gocsv.UnmarshalFile(inCsv, &all); err != nil {
+		panic(err)
+	}
+
+	return all
 }
 
 func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPath string, out2 string) {
