@@ -11,7 +11,7 @@ import (
 )
 
 var inCtFile = flag.String("in-ct-all", "", "加载解析ct导出的csv总表")
-var inCheckFile = flag.String("in-check", "", "加载解析ct导出的csv总表")
+var inCheckFile = flag.String("in-check", "", "加载解析盘点生成的xlsx表")
 
 // 资产管理系统上导出的总资产，csv格式
 type CtLine struct {
