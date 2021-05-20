@@ -50,9 +50,11 @@ type Line struct {
 type EamLine struct {
 	AssetTag string `csv:"资产编码"`
 	Name string `csv:"规格型号"`
+	Type string `csv:"资产名称"`
+	Brand string `csv:"品牌名称"`
 }
 
-func loadEamCsv(csvPath string) []*EamLine {
+func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 	all := make([]*EamLine, 0)
 	inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
@@ -63,7 +65,35 @@ func loadEamCsv(csvPath string) []*EamLine {
 		panic(err)
 	}
 
-	return all
+	matchList := make([]*EamLine, 0)
+	if filter != "" {
+		for _, line := range all {
+			if strings.HasPrefix(line.AssetTag, filter) {
+				log.Printf("%#v", line)
+				matchList = append(matchList, line)
+			}
+		}
+	}
+
+	return all, matchList
+}
+
+func exportCsv(outCsvPath string, out interface{}) {
+	outCsv, err := os.OpenFile(outCsvPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+	defer outCsv.Close()
+	if _, err := outCsv.Seek(0, 0); err != nil { // Go to the start of the file
+		panic(err)
+	}
+
+	//csvContent, err := gocsv.MarshalString(&export)
+	//fmt.Println(csvContent) // Display all clients as CSV string
+	err = gocsv.MarshalFile(out, outCsv)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPath string, out2 string) {
@@ -110,27 +140,9 @@ func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 		}
 	}
 
-	saveFunc := func(outCsvPath string, out interface{}) {
-		outCsv, err := os.OpenFile(outCsvPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
-		if err != nil {
-			panic(err)
-		}
-		defer outCsv.Close()
-		if _, err := outCsv.Seek(0, 0); err != nil { // Go to the start of the file
-			panic(err)
-		}
-
-		//csvContent, err := gocsv.MarshalString(&export)
-		//fmt.Println(csvContent) // Display all clients as CSV string
-		err = gocsv.MarshalFile(out, outCsv)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	saveFunc(outCheckCsvPath, &founded)
+	exportCsv(outCheckCsvPath, &founded)
 	if len(notFounded) > 0 {
-		saveFunc(out2, &notFounded)
+		exportCsv(out2, &notFounded)
 	}
 }
 
@@ -144,5 +156,9 @@ func main() {
 		out := filepath.Join(outDir, "checked_" + outName[0:i] + ".csv")
 		out2:= filepath.Join(outDir, "unknown_" + outName[0:i] + ".csv")
 		exportCheckCsv(*inCtFile, *inCheckFile, out, out2)
+	}
+
+	if *eamFile != "" {
+		loadEamCsv(*eamFile, "TKMB")
 	}
 }
