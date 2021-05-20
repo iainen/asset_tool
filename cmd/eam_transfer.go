@@ -68,7 +68,7 @@ func loadEamTransferCsv(csvPath string, filter string) ([]*EamTransferLine, []*E
 	return all, matchList
 }
 
-func mergeEbAssets(dir string, out string) {
+func mergeEbAssets(dir string) []*EamTransferLine {
 	all := make([]*EamTransferLine, 0)
 
 	csvList, _ := GetAllFiles(dir, "asset.csv")
@@ -76,11 +76,9 @@ func mergeEbAssets(dir string, out string) {
 		log.Printf("--> %#v", csv)
 		_, list2 := loadEamTransferCsv(csv, "TKMB")
 		for _, line := range list2 {
-			//log.Printf("%#v", line)
 			all = append(all, line)
 		}
 	}
 
-	// export all
-	exportCsv(out, &all)
+	return all
 }

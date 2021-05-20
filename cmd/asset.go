@@ -76,7 +76,7 @@ func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 	if filter != "" {
 		for _, line := range all {
 			if strings.HasPrefix(line.AssetTag, filter) {
-				log.Printf("%#v", line)
+				//log.Printf("%#v", line)
 				matchList = append(matchList, line)
 			}
 		}
@@ -178,6 +178,7 @@ func main() {
 	}
 
 	if *ebDir != ""  {
-		mergeEbAssets(*ebDir, filepath.Join(*ebDir, "all-asset.csv"))
+		all := mergeEbAssets(*ebDir)
+		exportCsv(filepath.Join(*ebDir, "all-asset.csv"), &all)
 	}
 }

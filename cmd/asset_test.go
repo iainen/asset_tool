@@ -26,5 +26,25 @@ func TestEamTransferCsv(t *testing.T) {
 }
 
 func TestGetAllFiles(t *testing.T) {
-	mergeEbAssets("../ct/eb/", "../ct/eb/all-asset.csv")
+	all := mergeEbAssets("../ct/eb/")
+	// export all
+	exportCsv("../ct/eb/all-asset.csv", &all)
+}
+
+func TestFilterSelfA1Assets(t *testing.T) {
+	ebMap := make(map[string]*EamTransferLine)
+	eb := mergeEbAssets("../ct/eb/")
+	for _, line := range eb {
+		ebMap[line.AssetTag] = line
+	}
+
+	selfAssets := make([]*EamLine, 0)
+	_, selfAll := loadEamCsv("../ct/eam-0519-zhongkai.csv", "TKMB")
+	for _, line := range selfAll {
+		if _, ok := ebMap[line.AssetTag]; !ok {
+			selfAssets = append(selfAssets, line)
+		}
+	}
+
+	exportCsv("../ct/eb/all-a1-zhongkai.csv", &selfAssets)
 }
