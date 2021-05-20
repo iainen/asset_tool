@@ -26,13 +26,5 @@ func TestEamTransferCsv(t *testing.T) {
 }
 
 func TestGetAllFiles(t *testing.T) {
-	csvList, _ := GetAllFiles("../ct/eb/", "asset.csv")
-	for _, csv := range csvList {
-		log.Printf("--> %#v", csv)
-
-		_, list2 := loadEamTransferCsv(csv, "TKMB")
-		for _, line := range list2 {
-			log.Printf("%#v", line)
-		}
-	}
+	mergeEbAssets("../ct/eb/", "../ct/eb/all-asset.csv")
 }

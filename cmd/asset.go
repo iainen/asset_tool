@@ -13,6 +13,7 @@ import (
 var inCtFile = flag.String("in-ct-all", "", "加载解析ct导出的csv总表")
 var inCheckFile = flag.String("in-check", "", "加载解析盘点生成的xlsx表")
 var eamFile = flag.String("eam", "", "加载epo导出的csv表")
+var ebDir = flag.String("eb", "", "加载eb资产列表目录下所有asset.csv")
 
 // 资产管理系统上导出的总资产，csv格式
 type CtLine struct {
@@ -62,7 +63,7 @@ func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 	}
 	defer inCsv.Close()
 
-	_, err = fixCsvUtf8(inCsv)
+	_, err = fixInCsvUtf8(inCsv)
 	if err != nil {
 		panic(err)
 	}
@@ -94,8 +95,10 @@ func exportCsv(outCsvPath string, out interface{}) {
 		panic(err)
 	}
 
-	//csvContent, err := gocsv.MarshalString(&export)
-	//fmt.Println(csvContent) // Display all clients as CSV string
+	if err := fixOutCsvUtf8(outCsv); err != nil {
+		panic(err)
+	}
+
 	err = gocsv.MarshalFile(out, outCsv)
 	if err != nil {
 		panic(err)
@@ -112,7 +115,7 @@ func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 	}
 	defer inCsv.Close()
 
-	_, err = fixCsvUtf8(inCsv)
+	_, err = fixInCsvUtf8(inCsv)
 	if err != nil {
 		panic(err)
 	}
@@ -172,5 +175,9 @@ func main() {
 
 	if *eamFile != "" {
 		loadEamCsv(*eamFile, "TKMB")
+	}
+
+	if *ebDir != ""  {
+		mergeEbAssets(*ebDir, filepath.Join(*ebDir, "all-asset.csv"))
 	}
 }
