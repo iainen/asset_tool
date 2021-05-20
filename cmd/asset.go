@@ -61,6 +61,12 @@ func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 		panic(err)
 	}
 	defer inCsv.Close()
+
+	_, err = fixCsvUtf8(inCsv)
+	if err != nil {
+		panic(err)
+	}
+
 	if err := gocsv.UnmarshalFile(inCsv, &all); err != nil {
 		panic(err)
 	}
@@ -105,6 +111,12 @@ func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 		panic(err)
 	}
 	defer inCsv.Close()
+
+	_, err = fixCsvUtf8(inCsv)
+	if err != nil {
+		panic(err)
+	}
+
 	if err := gocsv.UnmarshalFile(inCsv, &all); err != nil {
 		panic(err)
 	}
