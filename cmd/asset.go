@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"git.code.oa.com/zhongkaizhu/assets_manager/excel"
 	"github.com/gocarina/gocsv"
 	"github.com/urfave/cli/v2"
@@ -10,10 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 )
-
-var inCtFile = flag.String("in-ct-all", "", "加载解析ct导出的csv总表")
-var inCheckFile = flag.String("in-check", "", "加载解析盘点生成的xlsx表")
-var ebDir = flag.String("eb", "", "加载eb资产列表目录下所有asset.csv")
 
 // 资产管理系统上导出的总资产，csv格式
 type CtLine struct {
@@ -188,8 +183,8 @@ func main() {
 					},
 
 					&cli.StringFlag{
-						Name:    "csv",
-						Aliases: []string{"c"},
+						Name:    "input-csv",
+						Aliases: []string{"i"},
 						Required: true,
 						Usage:   "csv file exported by eam.oa.com",
 					},
@@ -202,24 +197,82 @@ func main() {
 					},
 				},
 			},
+
+			{
+				Name:    "check",
+				Usage:   "用于设备盘点，产生Snipe-IT资产管理系统导入所需的csv文件",
+				Action: func(c *cli.Context) error {
+					inFile := c.String("input")
+					assetFile := c.String("all")
+
+					outDir, outName := filepath.Split(inFile)
+					i := strings.LastIndex(outName, filepath.Ext(inFile))
+					out := filepath.Join(outDir, "checked_" + outName[0:i] + ".csv")
+					out2:= filepath.Join(outDir, "unknown_" + outName[0:i] + ".csv")
+					exportCheckCsv(assetFile, inFile, out, out2)
+
+					log.Printf("prefix:%v", c.String("prefix"))
+					_, filterList := loadEamCsv(c.String("csv"), c.String("prefix"))
+					exportCsv(c.String("output"), filterList)
+					return nil
+				},
+
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "input",
+						Aliases:  []string{"i"},
+						Required: true,
+						Usage:    "csv文件，由机房管理员执行盘点时产生",
+					},
+
+					&cli.StringFlag{
+						Name:     "all",
+						Aliases:  []string{"A"},
+						Required: true,
+						Usage:    "csv文件, 从Snipe-IT资产管理系统中导出的总资产表",
+					},
+				},
+			},
+
+			{
+				Name:  "merge",
+				Usage: "合并多个文件，搜索子目录下所有指定文件(asset.csv)",
+				Action: func(c *cli.Context) error {
+					inDir := c.String("dir")
+					outFile := c.String("out")
+					all := mergeAssets(inDir, "asset.csv", c.String("prefix"))
+					exportCsv(filepath.Join(inDir, outFile), &all)
+					return nil
+				},
+
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "dir",
+						Aliases:  []string{"d"},
+						Required: true,
+						Usage:    "输入目录",
+					},
+
+					&cli.StringFlag{
+						Name:     "out",
+						Aliases:  []string{"o"},
+						Required: true,
+						Usage:    "输出文件",
+					},
+
+					&cli.StringFlag{
+						Name:     "prefix",
+						Aliases:  []string{"p"},
+						Value: "TKMB",
+						Usage:    "过滤指定的资产类型，如TKMB、TKNB等",
+					},
+				},
+			},
 		},
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if *inCtFile != "" && *inCheckFile != "" {
-		outDir, outName := filepath.Split(*inCheckFile)
-		i := strings.LastIndex(outName, filepath.Ext(*inCheckFile))
-		out := filepath.Join(outDir, "checked_" + outName[0:i] + ".csv")
-		out2:= filepath.Join(outDir, "unknown_" + outName[0:i] + ".csv")
-		exportCheckCsv(*inCtFile, *inCheckFile, out, out2)
-	}
-
-	if *ebDir != ""  {
-		all := mergeEbAssets(*ebDir)
-		exportCsv(filepath.Join(*ebDir, "all-asset.csv"), &all)
 	}
 }
