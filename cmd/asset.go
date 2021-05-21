@@ -4,6 +4,7 @@ import (
 	"flag"
 	"git.code.oa.com/zhongkaizhu/assets_manager/excel"
 	"github.com/gocarina/gocsv"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,7 +13,6 @@ import (
 
 var inCtFile = flag.String("in-ct-all", "", "加载解析ct导出的csv总表")
 var inCheckFile = flag.String("in-check", "", "加载解析盘点生成的xlsx表")
-var eamFile = flag.String("eam", "", "加载epo导出的csv表")
 var ebDir = flag.String("eb", "", "加载eb资产列表目录下所有asset.csv")
 
 // 资产管理系统上导出的总资产，csv格式
@@ -76,7 +76,7 @@ func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 	if filter != "" {
 		for _, line := range all {
 			if strings.HasPrefix(line.AssetTag, filter) {
-				//log.Printf("%#v", line)
+				// log.Printf("%#v", line)
 				matchList = append(matchList, line)
 			}
 		}
@@ -162,8 +162,53 @@ func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 }
 
 func main() {
-	flag.Parse()
+	//flag.Parse()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
+
+	app := &cli.App{
+		Commands: []*cli.Command {
+			{
+				Name:    "eam",
+				Aliases: []string{"e"},
+				Usage:   "load eam asset file, csv format",
+				Action:  func(c *cli.Context) error {
+					log.Printf("prefix:%v", c.String("prefix"))
+					_, filterList := loadEamCsv(c.String("csv"), c.String("prefix"))
+					exportCsv(c.String("output"), filterList)
+
+					return nil
+				},
+
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "prefix",
+						Aliases: []string{"p"},
+						Value:   "TKMB",
+						Usage:   "filter with prefix, like `TKMB/TKMR` etc.",
+					},
+
+					&cli.StringFlag{
+						Name:    "csv",
+						Aliases: []string{"c"},
+						Required: true,
+						Usage:   "csv file exported by eam.oa.com",
+					},
+
+					&cli.StringFlag{
+						Name:    "output",
+						Aliases: []string{"o"},
+						Required: true,
+						Usage:   "output file to save",
+					},
+				},
+			},
+		},
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if *inCtFile != "" && *inCheckFile != "" {
 		outDir, outName := filepath.Split(*inCheckFile)
@@ -171,10 +216,6 @@ func main() {
 		out := filepath.Join(outDir, "checked_" + outName[0:i] + ".csv")
 		out2:= filepath.Join(outDir, "unknown_" + outName[0:i] + ".csv")
 		exportCheckCsv(*inCtFile, *inCheckFile, out, out2)
-	}
-
-	if *eamFile != "" {
-		loadEamCsv(*eamFile, "TKMB")
 	}
 
 	if *ebDir != ""  {
