@@ -164,8 +164,7 @@ func main() {
 		Commands: []*cli.Command {
 			{
 				Name:    "eam",
-				Aliases: []string{"e"},
-				Usage:   "load eam asset file, csv format",
+				Usage:   "处理eam.om.com上导出的文件",
 				Action:  func(c *cli.Context) error {
 					log.Printf("prefix:%v", c.String("prefix"))
 					_, filterList := loadEamCsv(c.String("csv"), c.String("prefix"))
