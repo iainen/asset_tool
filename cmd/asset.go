@@ -240,7 +240,7 @@ func main() {
 					inDir := c.String("dir")
 					outFile := c.String("out")
 					all := mergeAssets(inDir, "asset.csv", c.String("prefix"))
-					exportCsv(filepath.Join(inDir, outFile), &all)
+					exportCsv(outFile, &all)
 					return nil
 				},
 
