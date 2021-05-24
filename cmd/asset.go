@@ -42,7 +42,7 @@ type Line struct {
 	Location string
 }
 
-// 用于导入http://eam.oa.com/上导出的个人设备
+// 由http://eam.oa.com/上导出的个人设备的csv表
 type EamLine struct {
 	AssetTag string `csv:"资产编码"`
 	Name string `csv:"规格型号"`
@@ -81,7 +81,7 @@ func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 }
 
 func exportCsv(outCsvPath string, out interface{}) {
-	outCsv, err := os.OpenFile(outCsvPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	outCsv, err := os.OpenFile(outCsvPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -156,6 +156,52 @@ func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 	}
 }
 
+func diffCsv(epoCsv string, snipeItCsv string) {
+	importCsv := func(csvPath string, out interface{}) {
+		inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
+		defer inCsv.Close()
+
+		_, err = fixInCsvUtf8(inCsv)
+		if err != nil {
+			panic(err)
+		}
+
+		if err := gocsv.UnmarshalFile(inCsv, out); err != nil {
+			panic(err)
+		}
+	}
+
+	snipeAll := make([]*CtLine, 0)
+	importCsv(snipeItCsv, &snipeAll)
+
+	innerMap := make(map[string]*Line, 0)
+	for _, line := range snipeAll {
+		innerMap[line.AssetTag] = &Line{
+			Company:      line.Company,
+			AssetTag:     line.AssetTag,
+			Model:        line.Model,
+			Brand:        line.Brand,
+			Manufacturer: line.Manufacturer,
+			Category:     line.Category,
+			Status:       line.Status,
+			Location:     line.Location,
+		}
+		//log.Printf("-->: %#v", line)
+	}
+
+	epoAll := make([]*EamLine, 0)
+	importCsv(epoCsv, &epoAll)
+
+	for _, line := range epoAll {
+		if _, ok := innerMap[line.AssetTag]; !ok {
+			log.Printf("not found: %#v", line)
+		}
+	}
+}
+
 func main() {
 	//flag.Parse()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
@@ -167,7 +213,7 @@ func main() {
 				Usage:   "处理eam.om.com上导出的文件",
 				Action:  func(c *cli.Context) error {
 					log.Printf("prefix:%v", c.String("prefix"))
-					_, filterList := loadEamCsv(c.String("csv"), c.String("prefix"))
+					_, filterList := loadEamCsv(c.String("input"), c.String("prefix"))
 					exportCsv(c.String("output"), filterList)
 
 					return nil
@@ -182,7 +228,7 @@ func main() {
 					},
 
 					&cli.StringFlag{
-						Name:    "input-csv",
+						Name:    "input",
 						Aliases: []string{"i"},
 						Required: true,
 						Usage:   "csv file exported by eam.oa.com",
@@ -264,6 +310,32 @@ func main() {
 						Aliases:  []string{"p"},
 						Value: "TKMB",
 						Usage:    "过滤指定的资产类型，如TKMB、TKNB等",
+					},
+				},
+			},
+			{
+				Name:    "diff",
+				Usage:   "用于设备盘点，产生Snipe-IT资产管理系统导入所需的csv文件",
+				Action: func(c *cli.Context) error {
+					eamCsv := c.String("eam")
+					snipeItCsv := c.String("snipe-it")
+					diffCsv(eamCsv, snipeItCsv)
+					return nil
+				},
+
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "eam",
+						Aliases:  []string{"e"},
+						Required: true,
+						Usage:    "csv文件，由eam过滤导出的个人资产设备列表",
+					},
+
+					&cli.StringFlag{
+						Name:     "snipe-it",
+						Aliases:  []string{"s"},
+						Required: true,
+						Usage:    "csv文件, 从Snipe-IT资产管理系统中导出的总资产表",
 					},
 				},
 			},
