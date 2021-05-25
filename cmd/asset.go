@@ -186,6 +186,30 @@ func main() {
 	app := &cli.App{
 		Commands: []*cli.Command{
 			{
+				Name:  "utf8",
+				Usage: "将snipe-it导出的总资产添加utf-8字节头",
+				Action: func(c *cli.Context) error {
+					return AddUtf8Bom(c.String("input"), c.String("output"))
+				},
+
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "input",
+						Aliases:  []string{"i"},
+						Required: true,
+						Usage:    "输入文件",
+					},
+
+					&cli.StringFlag{
+						Name:     "output",
+						Aliases:  []string{"o"},
+						Required: true,
+						Usage:    "输出文件",
+					},
+				},
+			},
+
+			{
 				Name:  "eam",
 				Usage: "处理eam.om.com上导出的文件",
 				Action: func(c *cli.Context) error {

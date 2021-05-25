@@ -132,3 +132,33 @@ func TestA6Asset(t *testing.T) {
 		exportCsv("a6_not_founded.csv", &notFounded)
 	}
 }
+
+func TestAssignSnipeItAsset(t *testing.T) {
+	eamList := make([]*EamLine, 0)
+	loadCsv("2021-05-25_个人实物查询_colerwang.csv", &eamList)
+	allMap := make(map[string]*EamLine, 0)
+
+	for _, line := range eamList {
+		allMap[line.AssetTag] = line
+	}
+
+	notFound := make([]*SnipeItLine, 0)
+	loadCsv("../ct/0525_all_not_found.csv", &notFound)
+
+	notFound2 := make([]*EamLine, 0)
+
+	log.Printf("len: %v\n", len(notFound))
+	for _, line := range notFound {
+		if f, ok := allMap[line.AssetTag]; ok {
+			f.Type = line.Model
+			notFound2 = append(notFound2, f)
+		} else {
+			log.Printf("--> %#v", line)
+		}
+	}
+
+	if len(notFound2) > 0 {
+		exportCsv("0525_all_not_found_withname.csv", &notFound2)
+	}
+
+}

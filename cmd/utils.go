@@ -1,7 +1,9 @@
 package main
 
 import (
+	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -31,4 +33,43 @@ func GetAllFiles(dirPth string, filter string) (files []string, err error) {
 	}
 
 	return files, nil
+}
+
+func AddUtf8Bom(inFile string, outFile string) error {
+	source, err := os.OpenFile(inFile, os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	_, err = fixInCsvUtf8(source)
+	if err != nil {
+		return err
+	}
+
+	dest, err := os.OpenFile(outFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+
+	utf8Bom := []byte{0xEF, 0xBB, 0xBF}
+	if _, err := dest.Write(utf8Bom); err != nil {
+		return err
+	}
+
+	buf := make([]byte, 64*1024)
+	for {
+		n, err := source.Read(buf)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if n == 0 {
+			break
+		}
+
+		if _, err := dest.Write(buf[:n]); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
