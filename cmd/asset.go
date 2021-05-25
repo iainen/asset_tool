@@ -50,9 +50,8 @@ type EamLine struct {
 	Brand    string `csv:"品牌名称"`
 }
 
-func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
-	all := make([]*EamLine, 0)
-	inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, os.ModePerm)
+func loadCsv(csvPath string, out interface{}) {
+	inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -63,10 +62,14 @@ func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 		panic(err)
 	}
 
-	if err := gocsv.UnmarshalFile(inCsv, &all); err != nil {
+	if err := gocsv.UnmarshalFile(inCsv, out); err != nil {
 		panic(err)
 	}
+}
 
+func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
+	all := make([]*EamLine, 0)
+	loadCsv(csvPath, &all)
 	matchList := make([]*EamLine, 0)
 	if filter != "" {
 		for _, line := range all {
@@ -104,20 +107,7 @@ func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 	all := make([]*CtLine, 0)
 	allMap := make(map[string]*Line, 0)
 
-	inCsv, err := os.OpenFile(snipeItCsvPath, os.O_RDONLY, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-	defer inCsv.Close()
-
-	_, err = fixInCsvUtf8(inCsv)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := gocsv.UnmarshalFile(inCsv, &all); err != nil {
-		panic(err)
-	}
+	loadCsv(snipeItCsvPath, &all)
 	for _, line := range all {
 		allMap[line.AssetTag] = &Line{
 			Company:      line.Company,
@@ -161,25 +151,8 @@ func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 }
 
 func diffCsv(epoCsv string, snipeItCsv string) {
-	importCsv := func(csvPath string, out interface{}) {
-		inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, os.ModePerm)
-		if err != nil {
-			panic(err)
-		}
-		defer inCsv.Close()
-
-		_, err = fixInCsvUtf8(inCsv)
-		if err != nil {
-			panic(err)
-		}
-
-		if err := gocsv.UnmarshalFile(inCsv, out); err != nil {
-			panic(err)
-		}
-	}
-
 	snipeAll := make([]*CtLine, 0)
-	importCsv(snipeItCsv, &snipeAll)
+	loadCsv(snipeItCsv, &snipeAll)
 
 	innerMap := make(map[string]*Line, 0)
 	for _, line := range snipeAll {
@@ -197,7 +170,7 @@ func diffCsv(epoCsv string, snipeItCsv string) {
 	}
 
 	epoAll := make([]*EamLine, 0)
-	importCsv(epoCsv, &epoAll)
+	loadCsv(epoCsv, &epoAll)
 
 	for _, line := range epoAll {
 		if _, ok := innerMap[line.AssetTag]; !ok {
