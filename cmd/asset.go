@@ -100,11 +100,11 @@ func exportCsv(outCsvPath string, out interface{}) {
 	}
 }
 
-func exportCheckCsv(inCtAllCsvPath string, inCheckXlsxPath string, outCheckCsvPath string, out2 string) {
+func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPath string, out2 string) {
 	all := make([]*CtLine, 0)
 	allMap := make(map[string]*Line, 0)
 
-	inCsv, err := os.OpenFile(inCtAllCsvPath, os.O_RDONLY, os.ModePerm)
+	inCsv, err := os.OpenFile(snipeItCsvPath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
@@ -255,10 +255,6 @@ func main() {
 					out := filepath.Join(outDir, "checked_" + outName[0:i] + ".csv")
 					out2:= filepath.Join(outDir, "unknown_" + outName[0:i] + ".csv")
 					exportCheckCsv(assetFile, inFile, out, out2)
-
-					log.Printf("prefix:%v", c.String("prefix"))
-					_, filterList := loadEamCsv(c.String("csv"), c.String("prefix"))
-					exportCsv(c.String("output"), filterList)
 					return nil
 				},
 
