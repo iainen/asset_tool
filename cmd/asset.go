@@ -263,7 +263,7 @@ func main() {
 						Name:     "input",
 						Aliases:  []string{"i"},
 						Required: true,
-						Usage:    "csv文件，由机房管理员执行盘点时产生",
+						Usage:    "xlsx文件，由机房管理员执行盘点时产生",
 					},
 
 					&cli.StringFlag{
@@ -311,7 +311,7 @@ func main() {
 			},
 			{
 				Name:    "diff",
-				Usage:   "用于设备盘点，产生Snipe-IT资产管理系统导入所需的csv文件",
+				Usage:   "比较从eam.oa.com上导出的资产表与Snipe-IT资产管理系统导出的总表的差异",
 				Action: func(c *cli.Context) error {
 					eamCsv := c.String("eam")
 					snipeItCsv := c.String("snipe-it")
