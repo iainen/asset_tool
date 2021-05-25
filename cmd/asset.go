@@ -247,14 +247,14 @@ func main() {
 				Name:    "check",
 				Usage:   "用于设备盘点，产生Snipe-IT资产管理系统导入所需的csv文件",
 				Action: func(c *cli.Context) error {
-					inFile := c.String("input")
-					assetFile := c.String("all")
+					toCheckXlsxFile := c.String("input")
+					snipeItCsvFile := c.String("all")
 
-					outDir, outName := filepath.Split(inFile)
-					i := strings.LastIndex(outName, filepath.Ext(inFile))
+					outDir, outName := filepath.Split(toCheckXlsxFile)
+					i := strings.LastIndex(outName, filepath.Ext(toCheckXlsxFile))
 					out := filepath.Join(outDir, "checked_" + outName[0:i] + ".csv")
 					out2:= filepath.Join(outDir, "unknown_" + outName[0:i] + ".csv")
-					exportCheckCsv(assetFile, inFile, out, out2)
+					exportCheckCsv(snipeItCsvFile, toCheckXlsxFile, out, out2)
 					return nil
 				},
 
