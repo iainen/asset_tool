@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"git.code.oa.com/zhongkaizhu/assets_manager/excel"
 	"log"
+	"strings"
 	"testing"
 )
 
@@ -29,6 +31,22 @@ func TestEamTransferCsv(t *testing.T) {
 func TestCheckFile(t *testing.T) {
 	toChecks := make([]*CheckLine, 0)
 	excel.Load("../ct/bug_tocheck.xlsx", &toChecks)
+	for _, line := range toChecks {
+		log.Printf("%#v", line)
+	}
+}
+
+func TestCheck2File(t *testing.T) {
+	toChecks := make([]*CheckLine, 0)
+	excel.Load("../ct/bug_tocheck2.xlsx", &toChecks)
+	for _, line := range toChecks {
+		log.Printf("%#v", line)
+	}
+}
+
+func TestTrim(t *testing.T) {
+	//fmt.Printf("[%q]\n", strings.Trim(" !!! Achtung! Achtung! !!! ", "!"))
+	fmt.Printf("[%q]\n", strings.TrimSpace("    "))
 }
 
 func TestGetAllFiles(t *testing.T) {

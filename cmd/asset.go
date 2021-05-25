@@ -12,42 +12,42 @@ import (
 
 // 资产管理系统上导出的总资产，csv格式
 type CtLine struct {
-	Company string `csv:"公司"`
-	AssetTag string `csv:"资产标签"`
-	Model string `csv:"型号"`
-	Brand string `csv:"品牌"`
+	Company      string `csv:"公司"`
+	AssetTag     string `csv:"资产标签"`
+	Model        string `csv:"型号"`
+	Brand        string `csv:"品牌"`
 	Manufacturer string `csv:"生产厂家"`
-	Category string `csv:"类别："`
-	Status string `csv:"状态"`
-	Location string `csv:"位置"`
+	Category     string `csv:"类别："`
+	Status       string `csv:"状态"`
+	Location     string `csv:"位置"`
 }
 
 // 线下盘点生成的资产，xlsx格式
 type CheckLine struct {
 	AssetTag string `excel:"资产标签" csv:"资产标签"`
-	Status string `excel:"状态" csv:"状态"`
+	Status   string `excel:"状态" csv:"状态"`
 	Location string `excel:"默认位置" csv:"默认位置"`
 }
 
 // 用于导入资产管理系统的表，csv格式
 type Line struct {
-	Company string
+	Company  string
 	AssetTag string `excel:"Asset Tag" csv:"Asset Tag"`
 	//	Serial string `excel:"Serial Number" csv:"Serial Number"`
-	Model string `excel:"Model name" csv:"Model name"`
-	Brand string `excel:"Model Number" csv:"Model Number"`
+	Model        string `excel:"Model name" csv:"Model name"`
+	Brand        string `excel:"Model Number" csv:"Model Number"`
 	Manufacturer string
-	Category string
-	Status string
-	Location string
+	Category     string
+	Status       string
+	Location     string
 }
 
 // 由http://eam.oa.com/上导出的个人设备的csv表
 type EamLine struct {
 	AssetTag string `csv:"资产编码"`
-	Name string `csv:"规格型号"`
-	Type string `csv:"资产名称"`
-	Brand string `csv:"品牌名称"`
+	Name     string `csv:"规格型号"`
+	Type     string `csv:"资产名称"`
+	Brand    string `csv:"品牌名称"`
 }
 
 func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
@@ -120,14 +120,14 @@ func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 	}
 	for _, line := range all {
 		allMap[line.AssetTag] = &Line{
-			Company: line.Company,
-			AssetTag: line.AssetTag,
-			Model: line.Model,
-			Brand: line.Brand,
+			Company:      line.Company,
+			AssetTag:     line.AssetTag,
+			Model:        line.Model,
+			Brand:        line.Brand,
 			Manufacturer: line.Manufacturer,
-			Category: line.Category,
-			Status: line.Status,
-			Location: line.Location,
+			Category:     line.Category,
+			Status:       line.Status,
+			Location:     line.Location,
 		}
 		//log.Printf("-->: %#v", line)
 	}
@@ -138,6 +138,10 @@ func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 	toChecks := make([]*CheckLine, 0)
 	excel.Load(inCheckXlsxPath, &toChecks)
 	for _, line := range toChecks {
+		if strings.TrimSpace(line.AssetTag) == "" {
+			continue
+		}
+
 		if f, ok := allMap[line.AssetTag]; ok {
 			f.Location = line.Location
 			f.Status = line.Status
@@ -207,11 +211,11 @@ func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
 	app := &cli.App{
-		Commands: []*cli.Command {
+		Commands: []*cli.Command{
 			{
-				Name:    "eam",
-				Usage:   "处理eam.om.com上导出的文件",
-				Action:  func(c *cli.Context) error {
+				Name:  "eam",
+				Usage: "处理eam.om.com上导出的文件",
+				Action: func(c *cli.Context) error {
 					log.Printf("prefix:%v", c.String("prefix"))
 					_, filterList := loadEamCsv(c.String("input"), c.String("prefix"))
 					exportCsv(c.String("output"), filterList)
@@ -228,32 +232,32 @@ func main() {
 					},
 
 					&cli.StringFlag{
-						Name:    "input",
-						Aliases: []string{"i"},
+						Name:     "input",
+						Aliases:  []string{"i"},
 						Required: true,
-						Usage:   "csv file exported by eam.oa.com",
+						Usage:    "csv file exported by eam.oa.com",
 					},
 
 					&cli.StringFlag{
-						Name:    "output",
-						Aliases: []string{"o"},
+						Name:     "output",
+						Aliases:  []string{"o"},
 						Required: true,
-						Usage:   "output file to save",
+						Usage:    "output file to save",
 					},
 				},
 			},
 
 			{
-				Name:    "check",
-				Usage:   "用于设备盘点，产生Snipe-IT资产管理系统导入所需的csv文件",
+				Name:  "check",
+				Usage: "用于设备盘点，产生Snipe-IT资产管理系统导入所需的csv文件",
 				Action: func(c *cli.Context) error {
 					toCheckXlsxFile := c.String("input")
 					snipeItCsvFile := c.String("all")
 
 					outDir, outName := filepath.Split(toCheckXlsxFile)
 					i := strings.LastIndex(outName, filepath.Ext(toCheckXlsxFile))
-					out := filepath.Join(outDir, "checked_" + outName[0:i] + ".csv")
-					out2:= filepath.Join(outDir, "unknown_" + outName[0:i] + ".csv")
+					out := filepath.Join(outDir, "checked_"+outName[0:i]+".csv")
+					out2 := filepath.Join(outDir, "unknown_"+outName[0:i]+".csv")
 					exportCheckCsv(snipeItCsvFile, toCheckXlsxFile, out, out2)
 					return nil
 				},
@@ -302,16 +306,16 @@ func main() {
 					},
 
 					&cli.StringFlag{
-						Name:     "prefix",
-						Aliases:  []string{"p"},
-						Value: "TKMB",
-						Usage:    "过滤指定的资产类型，如TKMB、TKNB等",
+						Name:    "prefix",
+						Aliases: []string{"p"},
+						Value:   "TKMB",
+						Usage:   "过滤指定的资产类型，如TKMB、TKNB等",
 					},
 				},
 			},
 			{
-				Name:    "diff",
-				Usage:   "比较从eam.oa.com上导出的资产表与Snipe-IT资产管理系统导出的总表的差异",
+				Name:  "diff",
+				Usage: "比较从eam.oa.com上导出的资产表与Snipe-IT资产管理系统导出的总表的差异",
 				Action: func(c *cli.Context) error {
 					eamCsv := c.String("eam")
 					snipeItCsv := c.String("snipe-it")

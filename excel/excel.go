@@ -60,7 +60,7 @@ func Load(input string, ptr interface{}) error {
 	v := rv.Type().Elem().Elem() // the struct variable
 	for i := 0; i < v.NumField(); i++ {
 		fieldInfo := v.Field(i) // a reflect.StructField
-		tag := fieldInfo.Tag           // a reflect.StructTag
+		tag := fieldInfo.Tag    // a reflect.StructTag
 		name := tag.Get("excel")
 		if name == "" {
 			name = fieldInfo.Name
@@ -86,14 +86,21 @@ func Load(input string, ptr interface{}) error {
 			log.Println("warning: row is empty, break")
 			break
 		}
+
 		line := reflect.New(rv.Type().Elem().Elem()).Elem()
 		for _, name := range names {
 			if _, ok := titleMap[name]; !ok {
 				continue
 			}
-			_ = populate(line.Field(fields[name]), row[titleMap[name]])
+
+			var tValue string
+			if titleMap[name] < len(row) {
+				tValue = row[titleMap[name]]
+			}
+
+			_ = populate(line.Field(fields[name]), tValue)
 		}
-		//log.Printf("%v: row:%#v", lineIndex, row)
+		//log.Printf("len:%v: %v: row:%#v", len(row), lineIndex, row)
 		rv.Set(reflect.Append(rv, line.Addr()))
 	}
 	return nil
