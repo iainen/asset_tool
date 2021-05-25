@@ -45,7 +45,6 @@ func TestCheck2File(t *testing.T) {
 }
 
 func TestTrim(t *testing.T) {
-	//fmt.Printf("[%q]\n", strings.Trim(" !!! Achtung! Achtung! !!! ", "!"))
 	fmt.Printf("[%q]\n", strings.TrimSpace("    "))
 }
 
