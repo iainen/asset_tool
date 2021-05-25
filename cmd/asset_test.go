@@ -1,6 +1,7 @@
 package main
 
 import (
+	"git.code.oa.com/zhongkaizhu/assets_manager/excel"
 	"log"
 	"testing"
 )
@@ -25,15 +26,20 @@ func TestEamTransferCsv(t *testing.T) {
 	log.Printf("len: %v", len(list2))
 }
 
+func TestCheckFile(t *testing.T) {
+	toChecks := make([]*CheckLine, 0)
+	excel.Load("../ct/bug_tocheck.xlsx", &toChecks)
+}
+
 func TestGetAllFiles(t *testing.T) {
-	all := mergeEbAssets("../ct/eb/")
+	all := mergeAssets("../ct/eb/", "asset.csv", "TKMB")
 	// export all
 	exportCsv("../ct/eb/all-asset.csv", &all)
 }
 
 func TestFilterSelfA1Assets(t *testing.T) {
 	ebMap := make(map[string]*EamTransferLine)
-	eb := mergeEbAssets("../ct/eb/")
+	eb := mergeAssets("../ct/eb/", "asset.csv", "TKMB")
 	for _, line := range eb {
 		ebMap[line.AssetTag] = line
 	}
