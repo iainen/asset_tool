@@ -82,6 +82,10 @@ func Load(input string, ptr interface{}) error {
 	titleRow := rows[0]
 	titleMap := detainTitles(names, titleRow)
 	for _, row := range rows[1:] {
+		if row == nil {
+			log.Println("warning: row is empty, break")
+			break
+		}
 		line := reflect.New(rv.Type().Elem().Elem()).Elem()
 		for _, name := range names {
 			if _, ok := titleMap[name]; !ok {
@@ -89,7 +93,7 @@ func Load(input string, ptr interface{}) error {
 			}
 			_ = populate(line.Field(fields[name]), row[titleMap[name]])
 		}
-		//log.Printf("line:%v", line)
+		//log.Printf("%v: row:%#v", lineIndex, row)
 		rv.Set(reflect.Append(rv, line.Addr()))
 	}
 	return nil
