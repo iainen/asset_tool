@@ -72,3 +72,64 @@ func TestFilterSelfA1Assets(t *testing.T) {
 
 	exportCsv("../ct/eb/all-a1-zhongkai.csv", &selfAssets)
 }
+
+func TestA6Asset(t *testing.T) {
+	toChecks := make([]*A6Line, 0)
+	loadCsv("../ct/A6-0525-assets.csv", &toChecks)
+
+	log.Printf("len: %v\n", len(toChecks))
+	for _, line := range toChecks {
+		if  line.AssetTag == "" {
+			log.Printf("%#v", line)
+		}
+	}
+
+	all := make([]*SnipeItLine, 0)
+	loadCsv("../ct/custom-assets-report-2021-05-25-035754.csv", &all)
+
+	log.Printf("len: %v\n", len(all))
+	for _, line := range all {
+		if  line.AssetTag == "" {
+			log.Printf("%#v", line)
+		}
+	}
+
+	allMap := make(map[string]*Line, 0)
+	for _, line := range all {
+		allMap[line.AssetTag] = &Line{
+			Company:      line.Company,
+			AssetTag:     line.AssetTag,
+			Model:        line.Model,
+			Brand:        line.Brand,
+			Manufacturer: line.Manufacturer,
+			Category:     line.Category,
+			Status:       line.Status,
+			Location:     line.Location,
+		}
+	}
+
+	founded := make([]*Line, 0)
+	notFounded := make([]*A6Line, 0)
+
+	for _, line := range toChecks {
+		if strings.TrimSpace(line.AssetTag) == "" {
+			continue
+		}
+
+		if f, ok := allMap[line.AssetTag]; ok {
+			f.Location = "A6_Checked"
+			f.Status = "上线"
+
+			//log.Printf("found: %#v", f)
+			founded = append(founded, f)
+		} else {
+			notFounded = append(notFounded, line)
+			log.Printf("not found: %#v", line)
+		}
+	}
+
+	exportCsv("a6_founded.csv", &founded)
+	if len(notFounded) > 0 {
+		exportCsv("a6_not_founded.csv", &notFounded)
+	}
+}

@@ -11,7 +11,7 @@ import (
 )
 
 // 资产管理系统上导出的总资产，csv格式
-type CtLine struct {
+type SnipeItLine struct {
 	Company      string `csv:"公司"`
 	AssetTag     string `csv:"资产标签"`
 	Model        string `csv:"型号"`
@@ -104,7 +104,7 @@ func exportCsv(outCsvPath string, out interface{}) {
 }
 
 func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPath string, out2 string) {
-	all := make([]*CtLine, 0)
+	all := make([]*SnipeItLine, 0)
 	allMap := make(map[string]*Line, 0)
 
 	loadCsv(snipeItCsvPath, &all)
@@ -151,7 +151,7 @@ func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPa
 }
 
 func diffCsv(epoCsv string, snipeItCsv string) {
-	snipeAll := make([]*CtLine, 0)
+	snipeAll := make([]*SnipeItLine, 0)
 	loadCsv(snipeItCsv, &snipeAll)
 
 	innerMap := make(map[string]*Line, 0)
