@@ -2,7 +2,6 @@ package main
 
 import (
 	"git.code.oa.com/zhongkaizhu/assets_manager/excel"
-	"github.com/gocarina/gocsv"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -50,23 +49,6 @@ type EamLine struct {
 	Brand    string `csv:"品牌名称"`
 }
 
-func loadCsv(csvPath string, out interface{}) {
-	inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer inCsv.Close()
-
-	_, err = fixInCsvUtf8(inCsv)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := gocsv.UnmarshalFile(inCsv, out); err != nil {
-		panic(err)
-	}
-}
-
 func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 	all := make([]*EamLine, 0)
 	loadCsv(csvPath, &all)
@@ -81,26 +63,6 @@ func loadEamCsv(csvPath string, filter string) ([]*EamLine, []*EamLine) {
 	}
 
 	return all, matchList
-}
-
-func exportCsv(outCsvPath string, out interface{}) {
-	outCsv, err := os.OpenFile(outCsvPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer outCsv.Close()
-	if _, err := outCsv.Seek(0, 0); err != nil { // Go to the start of the file
-		panic(err)
-	}
-
-	if err := fixOutCsvUtf8(outCsv); err != nil {
-		panic(err)
-	}
-
-	err = gocsv.MarshalFile(out, outCsv)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func exportCheckCsv(snipeItCsvPath string, inCheckXlsxPath string, outCheckCsvPath string, out2 string) {

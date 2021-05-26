@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gocarina/gocsv"
-	"io"
 	"log"
 	"os"
 	"strings"
@@ -15,30 +14,6 @@ type EamTransferLine struct {
 	Type string `csv:"物料码"`
 }
 
-func fixInCsvUtf8(csv *os.File) (bool, error) {
-	// support utf-8 bom! `ef bb bf`
-	buf := make([]byte, 3)
-	l, err := csv.Read(buf)
-	if err != nil || l != len(buf) {
-		return false, err
-	}
-
-	if buf[0] == 0xEF && buf[1] == 0xBB && buf[2] == 0xBF {
-		return true, nil
-	} else {
-		csv.Seek(0, io.SeekStart)
-		return false, nil
-	}
-}
-
-func fixOutCsvUtf8(csv *os.File) error {
-	// support utf-8 bom! `ef bb bf`
-	buf := []byte{0xEF, 0xBB, 0xBF}
-	_, err := csv.Seek(0, io.SeekStart)
-	_, err = csv.Write(buf)
-	return err
-}
-
 func loadEamTransferCsv(csvPath string, filter string) ([]*EamTransferLine, []*EamTransferLine) {
 	all := make([]*EamTransferLine, 0)
 	inCsv, err := os.OpenFile(csvPath, os.O_RDONLY, os.ModePerm)
@@ -46,7 +21,7 @@ func loadEamTransferCsv(csvPath string, filter string) ([]*EamTransferLine, []*E
 		panic(err)
 	}
 
-	_, err = fixInCsvUtf8(inCsv)
+	_, err = FixInCsvUtf8(inCsv)
 	if err != nil {
 		panic(err)
 	}
