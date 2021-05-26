@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"git.code.oa.com/zhongkaizhu/assets_manager/excel"
 	"log"
 	"strings"
 	"testing"
@@ -144,5 +143,4 @@ func TestAssignSnipeItAsset(t *testing.T) {
 	if len(notFound2) > 0 {
 		exportCsv("0525_all_not_found_withname.csv", &notFound2)
 	}
-
 }
