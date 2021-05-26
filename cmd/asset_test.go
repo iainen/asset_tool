@@ -28,22 +28,6 @@ func TestEamTransferCsv(t *testing.T) {
 	log.Printf("len: %v", len(list2))
 }
 
-func TestCheckFile(t *testing.T) {
-	toChecks := make([]*CheckLine, 0)
-	excel.Load("../ct/bug_tocheck.xlsx", &toChecks)
-	for _, line := range toChecks {
-		log.Printf("%#v", line)
-	}
-}
-
-func TestCheck2File(t *testing.T) {
-	toChecks := make([]*CheckLine, 0)
-	excel.Load("../ct/bug_tocheck2.xlsx", &toChecks)
-	for _, line := range toChecks {
-		log.Printf("%#v", line)
-	}
-}
-
 func TestTrim(t *testing.T) {
 	fmt.Printf("[%q]\n", strings.TrimSpace("    "))
 }
