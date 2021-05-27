@@ -128,13 +128,13 @@ func TestAssignSnipeItAsset(t *testing.T) {
 	notFound := make([]*SnipeItLine, 0)
 	loadCsv("../ct/0525_all_not_found.csv", &notFound)
 
-	notFound2 := make([]*EamLine, 0)
+	notFound2 := make([]*SnipeItLine, 0)
 
 	log.Printf("len: %v\n", len(notFound))
 	for _, line := range notFound {
 		if f, ok := allMap[line.AssetTag]; ok {
-			f.Type = line.Model
-			notFound2 = append(notFound2, f)
+			line.Name = f.Name
+			notFound2 = append(notFound2, line)
 		} else {
 			log.Printf("--> %#v", line)
 		}

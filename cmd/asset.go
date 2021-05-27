@@ -19,6 +19,7 @@ type SnipeItLine struct {
 	Category     string `csv:"类别："`
 	Status       string `csv:"状态"`
 	Location     string `csv:"位置"`
+	Name     string `csv:"资产名称"`
 }
 
 // 线下盘点生成的资产，xlsx格式
