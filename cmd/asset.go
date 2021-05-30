@@ -117,9 +117,9 @@ func diffCsv(epoCsv string, snipeItCsv string) {
 	snipeAll := make([]*SnipeItLine, 0)
 	loadCsv(snipeItCsv, &snipeAll)
 
-	innerMap := make(map[string]*Line, 0)
+	allMap := make(map[string]*Line, 0)
 	for _, line := range snipeAll {
-		innerMap[line.AssetTag] = &Line{
+		allMap[line.AssetTag] = &Line{
 			Company:      line.Company,
 			AssetTag:     line.AssetTag,
 			Model:        line.Model,
@@ -132,13 +132,31 @@ func diffCsv(epoCsv string, snipeItCsv string) {
 		//log.Printf("-->: %#v", line)
 	}
 
-	epoAll := make([]*EamLine, 0)
-	loadCsv(epoCsv, &epoAll)
+	_, epoAll := loadEamCsv(epoCsv, "TKMB")
+
+	founded := make([]*Line, 0)
+	notFounded := make([]*EamLine, 0)
 
 	for _, line := range epoAll {
-		if _, ok := innerMap[line.AssetTag]; !ok {
+		if strings.TrimSpace(line.AssetTag) == "" {
+			continue
+		}
+
+		if f, ok := allMap[line.AssetTag]; ok {
+			founded = append(founded, f)
+		} else {
+			notFounded = append(notFounded, line)
 			log.Printf("not found: %#v", line)
 		}
+	}
+
+	_, outName := filepath.Split(epoCsv)
+	i := strings.LastIndex(outName, filepath.Ext(outName))
+	if len(founded) > 0 {
+		exportCsv("checked_"+outName[0:i]+".csv", &founded)
+	}
+	if len(notFounded) > 0 {
+		exportCsv("unknown_"+outName[0:i]+".csv", &notFounded)
 	}
 }
 
