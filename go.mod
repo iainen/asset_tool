@@ -1,5 +1,4 @@
-module github.com/iainen/assets_manager
-
+module github.com/iainen/asset_tool
 go 1.16
 
 require (
