@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func detainTitles(titles []string, titleRow []string) map[string]int {
@@ -65,9 +66,12 @@ func Load(input string, ptr interface{}) error {
 		if name == "" {
 			name = fieldInfo.Name
 		}
+		nameSp := strings.Split(name, ";")
+		names = append(names, nameSp...)
 
-		names = append(names, name)
-		fields[name] = i
+		for _, n := range nameSp {
+			fields[n] = i
+		}
 		//log.Printf("name:%v", name)
 	}
 
